@@ -18,11 +18,11 @@ class ProfileType(Enum):
     CUBIC = 4
 
 
-class Track(QGraphicsItem):
+class Path(QGraphicsItem):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.track_points = []
+        self.path_points = []
         self.turnRadius = 0.0
         self.turnSpeed = 0.0
         self.turnAngle = 0.0
@@ -37,21 +37,21 @@ class Track(QGraphicsItem):
         return QRectF(-100.0, -100.0, 600.0, 600.0)
 
     def path_count(self):
-        return len(self.track_points)
+        return len(self.path_points)
 
     def get_state_at(self, index):
         if index >= self.path_count():
             index = self.path_count() - 1
         if index < 0:
             index = 0
-        return self.track_points[index]
+        return self.path_points[index]
 
     def get_pose_at(self, index):
         state = self.get_state_at(index)
         return state.get_pose()
 
     def paint(self, painter, option, widget):
-        if len(self.track_points) == 0:
+        if len(self.path_points) == 0:
             return
         colors = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
         pen = QPen(Qt.white)
@@ -60,8 +60,8 @@ class Track(QGraphicsItem):
         rect = QRectF(self.min_x, self.min_y, self.max_x - self.min_x, self.max_y - self.min_y)
         # rect.adjust(5,5,-5,-5)
         # painter.drawRect(rect)
-        for i in range(0, len(self.track_points), 5):
-            state = self.track_points[i]
+        for i in range(0, len(self.path_points), 5):
+            state = self.path_points[i]
             pen.setColor(colors[state.phase])
             painter.setPen(pen)
             rect = QRectF(state.x, state.y, 1.0, 1.0)
@@ -83,22 +83,22 @@ class Track(QGraphicsItem):
 
     def calculate_leadout(self):
         print(self.turn_end)
-        state = self.track_points[self.turn_end-1]
+        state = self.path_points[self.turn_end - 1]
         state.phase = 4
         target_distance = state.distance + 100.0
         while state.distance < target_distance:
             state.update()
-            self.track_points.append(copy.copy(state))
+            self.path_points.append(copy.copy(state))
 
     def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty):
-        self.track_points.clear()
+        self.path_points.clear()
         state = RobotState()
         state.set_interval(0.001)
         state.x = startx
         state.y = starty
         state.speed = params.speed
         state.theta = params.startAngle
-        self.track_points.append(copy.copy(state))
+        self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
         arc_omega = math.degrees(params.speed / params.radius)
@@ -118,14 +118,14 @@ class Track(QGraphicsItem):
                 state.omega = arc_omega * (turn_distance - state.distance) / params.delta
                 state.phase = 3
             state.update()
-            self.track_points.append(copy.copy(state))
+            self.path_points.append(copy.copy(state))
         state.omega = 0
         state.update()
-        self.track_points.append(copy.copy(state))
-        self.turn_end = len(self.track_points)
+        self.path_points.append(copy.copy(state))
+        self.turn_end = len(self.path_points)
         for i in range(100):
             state.update()
-            self.track_points.append(copy.copy(state))
+            self.path_points.append(copy.copy(state))
 
         # self.calculate_leadout()
         self.update()

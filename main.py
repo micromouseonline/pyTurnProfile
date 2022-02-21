@@ -4,7 +4,7 @@ from background import Background
 from parameters import TurnParameters, default_params
 from pose import Pose
 from robot import Robot
-from track import Track, ProfileType
+from path import Path, ProfileType
 from ui_pyturnprofile import Ui_MainWindow
 
 import random
@@ -34,7 +34,7 @@ class AppWindow(QMainWindow):
         self.path_scene.addItem(Background())
         self.robot = Robot()
         self.path_scene.addItem(self.robot)
-        self.path = Track()
+        self.path = Path()
         self.path_scene.addItem(self.path)
 
         # these get sensible values at te end of the initialisation
@@ -85,7 +85,6 @@ class AppWindow(QMainWindow):
         self.ui.rbTrapezoid.blockSignals(False)
         self.ui.rbTrapezoid.click()
         self.ui.rbTrapezoid.blockSignals(False)
-
 
     # called from toggle event for a radio button in
     # a group so there will be two calls - one for the button
@@ -167,6 +166,7 @@ class AppWindow(QMainWindow):
         self.current_params.acceleration = acceleration
         radius = self.ui.radiusSpinBox.value()
         speed = math.sqrt(acceleration * radius)
+        self.current_params.speed = speed
         self.ui.turnSpeedSpinBox.blockSignals(True)
         self.ui.turnSpeedSpinBox.setValue(int(speed))
         self.ui.turnSpeedSpinBox.blockSignals(False)
@@ -175,7 +175,6 @@ class AppWindow(QMainWindow):
     def set_delta(self, delta):
         self.current_params.delta = delta
         self.re_calculate()
-
 
     def set_offset(self, offset):
         self.current_params.offs = offset
@@ -217,7 +216,7 @@ class AppWindow(QMainWindow):
         self.re_calculate()
         i = self.ui.progressSlider.value()
         state = self.path.get_state_at(i)
-        print(i,state)
+        print(i, state)
 
     def set_xy(self):
         start_x = self.ui.startXSpinBox.value()
@@ -230,6 +229,23 @@ class AppWindow(QMainWindow):
     def set_robot_sensors(self):
         angle = self.ui.sensorAngleSpinBox.value()
         self.robot.set_sensor_angle(angle)
+
+    def plot_data(self):
+        self.ui.mpl_widget.canvas.axes.clear()
+        path = self.path.path_points[:self.path.turn_end]
+        path = self.path.path_points[:-1]
+        x = [s.time for s in path]
+        y = [s.omega for s in path]
+        self.ui.mpl_widget.canvas.axes.plot(x, y, 'g')
+        z = [s.theta for s in path]
+        self.ui.mpl_widget.canvas.axes.plot(x, z, 'b', linestyle='dotted')
+        v = [s.speed for s in path]
+        self.ui.mpl_widget.canvas.axes.plot(x, v, 'r-.')
+        self.ui.mpl_widget.canvas.axes.set_title('ljhdglhdsgkh')
+        self.ui.mpl_widget.canvas.axes.set_ylim(0, 2000)
+        self.ui.mpl_widget.canvas.axes.set_xlim(0, 0.75)
+        self.ui.mpl_widget.canvas.axes.grid('both')
+        self.ui.mpl_widget.canvas.draw()
 
     def re_calculate(self):
         start_x = self.ui.startXSpinBox.value()
@@ -247,27 +263,13 @@ class AppWindow(QMainWindow):
         str = f"{int(state.distance):4d} [{int(pose.x):4d},{int(pose.y):4d}] @ {int(pose.theta):4d} deg {state.omega:.2f} deg/s"
         self.ui.lblPathView.setText(str)
 
-        track = self.path.track_points[:self.path.turn_end]
-        track = self.path.track_points[:-1]
-        x = [s.time for s in track]
-        y = [s.omega for s in track]
-        self.ui.mpl_widget.canvas.axes.clear()
-        self.ui.mpl_widget.canvas.axes.plot(x,y,'g')
-        z = [s.theta for s in track]
-        self.ui.mpl_widget.canvas.axes.plot(x,z,'b.')
-        v = [s.speed for s in track]
-        self.ui.mpl_widget.canvas.axes.plot(x, v,'r-.')
-        self.ui.mpl_widget.canvas.axes.set_title('ljhdglhdsgkh')
-
-        self.ui.mpl_widget.canvas.axes.set_ylim(0,1000)
-        self.ui.mpl_widget.canvas.axes.set_xlim(0,0.75)
-        self.ui.mpl_widget.canvas.axes.grid('both')
-        self.ui.mpl_widget.canvas.draw()
-
+        self.plot_data()
 
         global calc_count
         calc_count += 1
         self.ui.textEdit.append(f"recalc - {self.path.path_count():4d} [{calc_count}] {int(state.x)},{int(state.y)} @ {state.theta:.1f}")
+
+
 
 
 # ============================================================================#
