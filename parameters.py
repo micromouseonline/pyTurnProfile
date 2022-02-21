@@ -1,0 +1,44 @@
+from dataclasses import dataclass
+
+
+@dataclass
+class TurnParameters:
+    pivot_x: float = 0.0
+    pivot_y: float = 0.0
+    speed: float = 0.0
+    acceleration: float = 0.0
+    radius: float = 0.0
+    delta: float = 0.0
+    offs: float = 0.0
+    startAngle: float = 0.0
+    angle: float = 0.0
+    length: float = 0.0
+    gamma: float = 0.0
+
+
+default_params = {
+    "SS90F": TurnParameters(pivot_x=0, pivot_y=0, offs=150, delta=100, radius=112, startAngle=0, angle=90, speed=2200, length=248),
+    "SS180": TurnParameters(pivot_x=0, pivot_y=0, offs=160, delta=127, radius=85, startAngle=0, angle=180, speed=2000, length=370),
+    "SD45": TurnParameters(pivot_x=0, pivot_y=0, offs=160, delta=65, radius=110, startAngle=0, angle=45, speed=2200, length=134),
+    "SD135": TurnParameters(pivot_x=0, pivot_y=0, offs=150, delta=90, radius=83, startAngle=0, angle=135, speed=1800, length=266),
+
+    "DS45": TurnParameters(pivot_x=90, pivot_y=0, offs=75, delta=70, radius=120, startAngle=-45, angle=45, speed=2200, length=14),
+    "DS135": TurnParameters(pivot_x=90, pivot_y=0, offs=105, delta=90, radius=80, startAngle=-45, angle=135, speed=1800, length=25),
+    "DD90": TurnParameters(pivot_x=90, pivot_y=0, offs=105, delta=80, radius=74, startAngle=-45, angle=90, speed=1800, length=17),
+
+    "SS90E": TurnParameters(pivot_x=0, pivot_y=0, offs=75, delta=50, radius=56, startAngle=0, angle=90, speed=1000, length=124),
+
+    "DD90K": TurnParameters(pivot_x=0, pivot_y=0, offs=75, delta=50, radius=174, startAngle=-45, angle=90, speed=1800, length=17),
+}
+
+working_params = {
+    "SS90F": TurnParameters(),
+    "SS180": TurnParameters(),
+    "SD45": TurnParameters(),
+    "SD135": TurnParameters(),
+    "DS45": TurnParameters(),
+    "DS135": TurnParameters(),
+    "DD90": TurnParameters(),
+    "SS90E": TurnParameters(),
+    "DD90K": TurnParameters(),
+}
