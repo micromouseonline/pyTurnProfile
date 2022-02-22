@@ -230,21 +230,53 @@ class AppWindow(QMainWindow):
         angle = self.ui.sensorAngleSpinBox.value()
         self.robot.set_sensor_angle(angle)
 
-    def plot_data(self):
-        self.ui.mpl_widget.canvas.axes.clear()
-        path = self.path.path_points[:self.path.turn_end]
-        path = self.path.path_points[:-1]
-        x = [s.time for s in path]
-        y = [s.omega for s in path]
-        self.ui.mpl_widget.canvas.axes.plot(x, y, 'g')
-        z = [s.theta for s in path]
-        self.ui.mpl_widget.canvas.axes.plot(x, z, 'b', linestyle='dotted')
-        v = [s.speed for s in path]
-        self.ui.mpl_widget.canvas.axes.plot(x, v, 'r-.')
-        self.ui.mpl_widget.canvas.axes.set_title('ljhdglhdsgkh')
-        self.ui.mpl_widget.canvas.axes.set_ylim(0, 2000)
-        self.ui.mpl_widget.canvas.axes.set_xlim(0, 0.75)
+    def decorate_plot(self):
+        '''
+        Pretties up the plot. Sets spines, ticks, labels
+        :return: nothing
+        '''
+        self.ui.mpl_widget.figure.subplots_adjust(left=0.15)
+        self.ui.mpl_widget.figure.subplots_adjust(right=0.85)
+        self.ui.mpl_widget.figure.subplots_adjust(top=0.9)
+        self.ui.mpl_widget.axes[0].set_xlabel('Time (seconds)')
+        self.ui.mpl_widget.axes[0].spines['top'].set_visible(False)
+        self.ui.mpl_widget.axes[1].spines['top'].set_visible(False)
+        self.ui.mpl_widget.axes[1].set_frame_on(True)
+        self.ui.mpl_widget.axes[1].patch.set_visible(False)
+        self.ui.mpl_widget.axes[0].set_frame_on(True)
+        self.ui.mpl_widget.axes[0].patch.set_visible(False)
+        self.ui.mpl_widget.axes[0].set_ylim(0, 3000)
+        self.ui.mpl_widget.axes[0].set_ylabel('speed (mm/s)', color='b')
+        self.ui.mpl_widget.axes[1].set_ylim(0, 1500)
+        self.ui.mpl_widget.axes[1].set_ylabel('Angle (deg) and Angular Velocity (deg/s)', color='g')
+        self.ui.mpl_widget.axes[0].set_xlim(xmin=0, xmax=0.6, auto=False)
         self.ui.mpl_widget.canvas.axes.grid('both')
+
+    def plot_data(self):
+        '''
+        Plot the angular velocity and wheel speeds. Uses a brute-force, redraw
+        everything approach just because it is easier to write.
+        If better performance is needed, consider preparing the plot once
+        and just updating the data used.
+        :return: Nothing
+        '''
+        self.ui.mpl_widget.canvas.axes.clear()
+        self.decorate_plot()
+
+        path = self.path.path_points[:-1]
+        time = [s.time for s in path]
+        angular_velocity = np.array([s.omega for s in path])
+        self.ui.mpl_widget.canvas.axes.plot(time, angular_velocity * 2, 'b')
+        v = np.array([s.speed for s in path])
+        self.ui.mpl_widget.canvas.axes.plot(time, v, 'g-.')
+
+        np_omega = np.array([math.radians(s.omega) for s in path])
+        np_speed = np.array([s.speed for s in path])
+        np_left_speed = np_speed + 37 * np_omega
+        np_right_speed = np_speed - 37 * np_omega
+        self.ui.mpl_widget.canvas.axes.plot(time, np_left_speed, 'b', linestyle='dotted')
+        self.ui.mpl_widget.canvas.axes.plot(time, np_right_speed, 'b', linestyle='dotted')
+
         self.ui.mpl_widget.canvas.draw()
 
     def re_calculate(self):
@@ -268,8 +300,6 @@ class AppWindow(QMainWindow):
         global calc_count
         calc_count += 1
         self.ui.textEdit.append(f"recalc - {self.path.path_count():4d} [{calc_count}] {int(state.x)},{int(state.y)} @ {state.theta:.1f}")
-
-
 
 
 # ============================================================================#
