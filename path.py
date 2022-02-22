@@ -71,10 +71,6 @@ class Path(QGraphicsItem):
                 max_omega = state.omega
         return max_omega
 
-
-
-
-
     def paint(self, painter, option, widget):
         if len(self.path_points) == 0:
             return
@@ -93,29 +89,7 @@ class Path(QGraphicsItem):
             painter.drawEllipse(rect)
             # painter.drawEllipse(int(state.x - 1), int(state.y - 1), 1, 1)
 
-    def calculate_trapezoid(self):
-        self.turnRadius  # need to be able to pass in all the required parameters
-        pass
-
-    def calculate_sinusoid(self):
-        pass
-
-    def calculate_quadratic(self):
-        pass
-
-    def calculate_cubic(self):
-        pass
-
-    def calculate_leadout(self):
-        print(self.turn_end)
-        state = self.path_points[self.turn_end - 1]
-        state.phase = 4
-        target_distance = state.distance + 100.0
-        while state.distance < target_distance:
-            state.update()
-            self.path_points.append(copy.copy(state))
-
-    def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty, loop_interval):
+    def calculate_trapezoid(self, params: TurnParameters, startx, starty, loop_interval):
         self.path_points.clear()
         state = RobotState()
         state.set_interval(loop_interval)
@@ -154,3 +128,110 @@ class Path(QGraphicsItem):
 
         # self.calculate_leadout()
         self.update()
+
+    def calculate_sinusoid(self, params: TurnParameters, startx, starty, loop_interval):
+        self.path_points.clear()
+        state = RobotState()
+        state.set_interval(loop_interval)
+        state.x = startx
+        state.y = starty
+        state.speed = params.speed
+        state.theta = params.startAngle
+        self.path_points.append(copy.copy(state))
+
+        end_angle = params.startAngle + params.angle
+        arc_omega = math.degrees(params.speed / params.radius)
+        transition_angle = params.delta * 2 * arc_omega / (math.pi * params.speed)
+        arc_angle = params.angle - 2 * transition_angle
+        arc_length = params.speed * arc_angle / arc_omega
+        turn_distance = 2 * params.delta + arc_length
+
+        while state.theta <= end_angle - 0.01:
+            if state.theta < params.startAngle + transition_angle:
+                t = state.distance/params.delta
+                state.omega = arc_omega * math.sin(math.pi/2 * t)
+                state.phase = 1
+            elif state.theta <= (end_angle - transition_angle):
+                state.omega = arc_omega
+                state.phase = 2
+            else:
+                t = (turn_distance - state.distance)/params.delta
+                state.omega = arc_omega * math.sin(math.pi/2 * t)
+                state.phase = 3
+            state.update()
+            self.path_points.append(copy.copy(state))
+        state.omega = 0
+        state.update()
+        self.path_points.append(copy.copy(state))
+        self.turn_end = len(self.path_points)
+        for i in range(100):
+            state.update()
+            self.path_points.append(copy.copy(state))
+
+        # self.calculate_leadout()
+        self.update()
+        pass
+
+    def calculate_quadratic(self, params: TurnParameters, startx, starty, loop_interval):
+        self.path_points.clear()
+        state = RobotState()
+        state.set_interval(loop_interval)
+        state.x = startx
+        state.y = starty
+        state.speed = params.speed
+        state.theta = params.startAngle
+        self.path_points.append(copy.copy(state))
+
+        end_angle = params.startAngle + params.angle
+        arc_omega = math.degrees(params.speed / params.radius)
+        transition_angle = params.delta * 2 * arc_omega / (3.0 * params.speed)
+        arc_angle = params.angle - 2 * transition_angle
+        arc_length = params.speed * arc_angle / arc_omega
+        turn_distance = 2 * params.delta + arc_length
+
+        while state.theta <= end_angle - 0.01:
+            if state.theta < params.startAngle + transition_angle:
+                t = state.distance / params.delta
+                state.omega = arc_omega * t * (2.0 - t)
+                state.phase = 1
+            elif state.theta <= (end_angle - transition_angle):
+                state.omega = arc_omega
+                state.phase = 2
+            else:
+                t = (turn_distance - state.distance)/params.delta
+                state.omega = arc_omega * t * (2.0 - t)
+                state.phase = 3
+            state.update()
+            self.path_points.append(copy.copy(state))
+        state.omega = 0
+        state.update()
+        self.path_points.append(copy.copy(state))
+        self.turn_end = len(self.path_points)
+        for i in range(100):
+            state.update()
+            self.path_points.append(copy.copy(state))
+
+        # self.calculate_leadout()
+        self.update()
+
+    def calculate_cubic(self, params: TurnParameters, startx, starty, loop_interval):
+        pass
+
+    def calculate_leadout(self):
+        print(self.turn_end)
+        state = self.path_points[self.turn_end - 1]
+        state.phase = 4
+        target_distance = state.distance + 100.0
+        while state.distance < target_distance:
+            state.update()
+            self.path_points.append(copy.copy(state))
+
+    def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty, loop_interval):
+        if profile_type == ProfileType.QUADRATIC:
+            self.calculate_quadratic(params, startx, starty, loop_interval)
+        elif profile_type == ProfileType.SINUSOID:
+            self.calculate_sinusoid(params, startx, starty, loop_interval)
+        else:
+            self.calculate_trapezoid(params, startx, starty, loop_interval)
+
+        return

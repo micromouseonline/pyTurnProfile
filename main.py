@@ -316,6 +316,7 @@ class AppWindow(QMainWindow):
         start_x = self.ui.startXSpinBox.value()
         start_y = self.ui.startYSpinBox.value()
 
+
         # recalculate the path
         self.path.calculate(self.current_profile, self.current_params, start_x, start_y,self.loop_interval)
         self.ui.progressSlider.setMinimum(0)
