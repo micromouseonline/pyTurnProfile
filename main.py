@@ -133,18 +133,26 @@ class AppWindow(QMainWindow):
         old_profile = self.current_profile
         if self.ui.rbTrapezoid.isChecked():
             self.current_profile = ProfileType.TRAPEZOID
+            self.ui.deltaSpinBox.setEnabled(True)
+            self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
             self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbSinusoid.isChecked():
             self.current_profile = ProfileType.SINUSOID
+            self.ui.deltaSpinBox.setEnabled(True)
+            self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
             self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbQuadratic.isChecked():
             self.current_profile = ProfileType.QUADRATIC
+            self.ui.deltaSpinBox.setEnabled(True)
+            self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
             self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbCubic.isChecked():
             self.current_profile = ProfileType.CUBIC
+            self.ui.deltaSpinBox.setEnabled(False)
+            self.ui.radiusSpinBox.setEnabled(False)
             self.ui.cubicLengthSpinBox.setEnabled(True)
             self.ui.gammaSpinBox.setEnabled(True)
         if self.current_profile == old_profile:
