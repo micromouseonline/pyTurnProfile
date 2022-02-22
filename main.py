@@ -10,9 +10,9 @@ from ui_pyturnprofile import Ui_MainWindow
 import random
 import numpy as np
 from mplwidget import MplWidget
-from PyQt5.QtCore import (Qt)
+from PyQt5.QtCore import (Qt, QObject)
 from PyQt5.QtGui import QBrush, QPainter, QIcon
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QGraphicsScene)
+from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
 
 draw_count = 0
 calc_count = 0
@@ -101,29 +101,29 @@ class AppWindow(QMainWindow):
     def set_turn_type(self, checked):
         if not checked:
             return
+        params = None
         if self.ui.rbSS90F.isChecked():
-            self.current_params = default_params['SS90F']
+            params = default_params['SS90F']
         elif self.ui.rbSS180.isChecked():
-            self.current_params = default_params['SS180']
+            params = default_params['SS180']
         elif self.ui.rbSD45.isChecked():
-            self.current_params = default_params['SD45']
+            params = default_params['SD45']
         elif self.ui.rbSD135.isChecked():
-            self.current_params = default_params['SD135']
+            params = default_params['SD135']
         elif self.ui.rbDS45.isChecked():
-            self.current_params = default_params['DS45']
+            params = default_params['DS45']
         elif self.ui.rbDS135.isChecked():
-            self.current_params = default_params['DS135']
+            params = default_params['DS135']
         elif self.ui.rbDD90.isChecked():
-            self.current_params = default_params['DD90']
+            params = default_params['DD90']
         elif self.ui.rbSS90E.isChecked():
-            self.current_params = default_params['SS90E']
+            params = default_params['SS90E']
         elif self.ui.rbDD90K.isChecked():
-            self.current_params = default_params['DD90K']
-        self.set_parameters(self.current_params)
-        self.current_params.speed = self.ui.turnSpeedSpinBox.value()
-        self.ui.progressSlider.blockSignals(True)
-        self.ui.progressSlider.setValue(0)
-        self.ui.progressSlider.blockSignals(False)
+            params = default_params['DD90K']
+        else:
+            return
+        self.set_parameters(params)
+        self.set_safely(self.ui.progressSlider,0)
         self.re_calculate()
 
     # another grouped radio button event
@@ -158,37 +158,54 @@ class AppWindow(QMainWindow):
         if self.current_profile == old_profile:
             return
         # print(self.current_profile)
+        # force recalculation of the spinners
+        self.set_speed(self.current_params.speed)
         self.ui.progressSlider.setValue(0)
         self.re_calculate()
 
     def set_speed(self, speed):
+        '''Available for all turn types. For segmented turns it uses the new
+        value and the radius to set the turn acceleration. For the Cubic spiral
+        turn it uses the length of the turn.
+
+        :param speed: The speed throughout the turn
+        :return: modifies acceleration
+        '''
         self.current_params.speed = speed
-        acceleration  = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.ui.accelerationSpinBox.blockSignals(True)
-        self.ui.accelerationSpinBox.setValue(int(acceleration))
-        self.ui.accelerationSpinBox.blockSignals(False)
+        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        self.set_safely(self.ui.accelerationSpinBox,int(acceleration))
         self.re_calculate()
 
     def set_radius(self, radius):
+        '''Only available for the segmented turn types. Uses the new value
+        and the speed to set the turn acceleration
+
+        :param radius: The radius of the central portion of the turn
+        :return: modifies acceleration
+        '''
         self.current_params.radius = radius
-        acceleration  = self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.ui.accelerationSpinBox.blockSignals(True)
         self.ui.accelerationSpinBox.setValue(int(acceleration))
         self.ui.accelerationSpinBox.blockSignals(False)
         self.re_calculate()
 
     def set_length(self, length):
+        '''Only available used for the cubic spiral turn.
+        Uses the value and the speed to calculate the new max acceleration
+
+        :param length: The length of the cubic spiral path
+        :return: Nothing
+        '''
         self.current_params.length = length
-        acceleration= self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.ui.accelerationSpinBox.blockSignals(True)
-        self.ui.accelerationSpinBox.setValue(int(acceleration))
-        self.ui.accelerationSpinBox.blockSignals(False)
+        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
+        self.set_safely(self.ui.cubicLengthSpinBox, int(length))
         self.re_calculate()
 
-    def set_gamma(self,gamma):
-        self.current_params.gamma = gamma/100.0
+    def set_gamma(self, gamma):
+        self.current_params.gamma = gamma / 100.0
         self.re_calculate()
-
 
     def set_acceleration(self, acceleration):
         self.current_params.acceleration = acceleration
@@ -205,7 +222,7 @@ class AppWindow(QMainWindow):
         self.re_calculate()
 
     def set_offset(self, offset):
-        self.current_params.offs = offset
+        self.current_params.offset = offset
         pivot_x = self.current_params.pivot_x
         pivot_y = self.current_params.pivot_y
         start_angle = self.current_params.startAngle
@@ -213,30 +230,29 @@ class AppWindow(QMainWindow):
         start_y = pivot_y + offset * math.sin(math.pi / 2 + math.radians(start_angle))
         self.robot.set_pose(Pose(start_x, start_y, start_angle))
 
-        self.ui.startXSpinBox.blockSignals(True)
-        self.ui.startXSpinBox.setValue(int(start_x))
-        self.ui.startXSpinBox.blockSignals(False)
-
-        self.ui.startYSpinBox.blockSignals(True)
-        self.ui.startYSpinBox.setValue(int(start_y))
-        self.ui.startYSpinBox.blockSignals(False)
+        self.set_safely(self.ui.startYSpinBox, int(start_y))
+        self.set_safely(self.ui.startXSpinBox, int(start_x))
+        self.set_safely(self.ui.offsetSpinBox, int(offset))
 
         self.re_calculate()
 
+    def set_safely(self, widget: QWidget, value):
+        '''Locks a widget while updating its value
+        '''
+        widget.blockSignals(True)
+        widget.setValue(value)
+        widget.blockSignals(False)
+
     def set_parameters(self, params: TurnParameters):
-        self.ui.radiusSpinBox.blockSignals(True)
-        self.ui.radiusSpinBox.setValue(params.radius)
-        self.ui.radiusSpinBox.blockSignals(False)
+        speed_now = self.ui.turnSpeedSpinBox.value()
+        self.current_params = params
+        self.set_safely(self.ui.radiusSpinBox, int(params.radius))
+        self.set_safely(self.ui.deltaSpinBox, int(params.delta))
+        self.set_safely(self.ui.cubicLengthSpinBox, int(params.length))
+        self.set_safely(self.ui.gammaSpinBox, int(params.gamma))
 
-        self.ui.deltaSpinBox.blockSignals(True)
-        self.ui.deltaSpinBox.setValue(params.delta)
-        self.ui.deltaSpinBox.blockSignals(False)
-
-        self.ui.cubicLengthSpinBox.blockSignals(True)
-        self.ui.cubicLengthSpinBox.setValue(params.length)
-        self.ui.cubicLengthSpinBox.blockSignals(False)
-
-        self.ui.offsetSpinBox.setValue(params.offs)
+        self.set_offset(params.offset)
+        self.set_speed(speed_now)
         self.re_calculate()
 
     # this is probably redundant
@@ -263,7 +279,7 @@ class AppWindow(QMainWindow):
     def show_summary(self):
         max_alpha = self.path.get_max_alpha()
         wheel_acc = self.robot.radius * math.radians(max_alpha)
-        exit_state = self.path.get_state_at(self.path.turn_end-1)
+        exit_state = self.path.get_state_at(self.path.turn_end - 1)
         self.ui.textEdit.clear()
         self.ui.textEdit.append(f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
         self.ui.textEdit.append(f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
@@ -277,10 +293,7 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append(f"    Exit Angle: {exit_state.theta:5.1f} deg")
         self.ui.textEdit.append(f"      Distance: {exit_state.distance:5.0f} deg")
         self.ui.textEdit.append(f"          Time: {exit_state.time:5.3f} sec")
-        cubic_acc = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.ui.textEdit.append(f"          accn: {cubic_acc:5.1f} sec")
         self.ui.textEdit.append("")
-
 
     def decorate_plot(self):
         '''
@@ -328,20 +341,17 @@ class AppWindow(QMainWindow):
         self.ui.mpl_widget.canvas.axes.plot(path_time, left_speed, 'b', linestyle='solid')
         self.ui.mpl_widget.canvas.axes.plot(path_time, right_speed, 'b', linestyle='solid')
 
-
         #  this call is VERY slow. everything else takes about 3ms. This takes 30ms!
         ## consider using pyqtgraph
         self.ui.mpl_widget.canvas.draw()
-
 
     def re_calculate(self):
 
         start_x = self.ui.startXSpinBox.value()
         start_y = self.ui.startYSpinBox.value()
 
-
         # recalculate the path
-        self.path.calculate(self.current_profile, self.current_params, start_x, start_y,self.loop_interval)
+        self.path.calculate(self.current_profile, self.current_params, start_x, start_y, self.loop_interval)
         self.ui.progressSlider.setMinimum(0)
         self.ui.progressSlider.setMaximum(self.path.turn_end)
         i = self.ui.progressSlider.value()
