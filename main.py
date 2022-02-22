@@ -1,5 +1,5 @@
 import math
-
+import time
 from background import Background
 from parameters import TurnParameters, default_params
 from pose import Pose
@@ -37,6 +37,12 @@ class AppWindow(QMainWindow):
         self.path = Path()
         self.path_scene.addItem(self.path)
 
+        # these will be needed as references to the plotted data
+        self.plot_ref_omega = None
+        self.plot_ref_speed = None
+        self.plot_ref_left_wheel = None
+        self.plot_ref_right_wheel = None
+
         # these get sensible values at te end of the initialisation
         self.current_params = -1
         self.current_profile = -1
@@ -51,7 +57,7 @@ class AppWindow(QMainWindow):
         self.ui.radiusSpinBox.valueChanged.connect(self.set_radius)
         self.ui.accelerationSpinBox.valueChanged.connect(self.set_acceleration)
 
-        self.ui.progressSlider.valueChanged.connect(self.re_calculate)
+        # self.ui.progressSlider.valueChanged.connect(self.re_calculate)
         # # turn type selectors
         self.ui.rbSS90F.toggled.connect(self.set_turn_type)
         self.ui.rbSS180.toggled.connect(self.set_turn_type)
@@ -72,7 +78,7 @@ class AppWindow(QMainWindow):
         self.ui.startXSpinBox.valueChanged.connect(self.set_xy)
         self.ui.startYSpinBox.valueChanged.connect(self.set_xy)
 
-        # path rogress slider
+        # path progress slider
         self.ui.progressSlider.valueChanged.connect(self.set_path_position)
 
         # robot sensor geometry
@@ -213,10 +219,8 @@ class AppWindow(QMainWindow):
 
     # this is probably redundant
     def set_path_position(self):
-        self.re_calculate()
         i = self.ui.progressSlider.value()
-        state = self.path.get_state_at(i)
-        print(i, state)
+        self.robot.set_pose(self.path.get_pose_at(i))
 
     def set_xy(self):
         start_x = self.ui.startXSpinBox.value()
@@ -245,10 +249,10 @@ class AppWindow(QMainWindow):
         self.ui.mpl_widget.axes[1].patch.set_visible(False)
         self.ui.mpl_widget.axes[0].set_frame_on(True)
         self.ui.mpl_widget.axes[0].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0].set_ylim(0, 3000)
+        self.ui.mpl_widget.axes[0].set_ylim(0, 4000)
         self.ui.mpl_widget.axes[0].set_ylabel('speed (mm/s)', color='b')
-        self.ui.mpl_widget.axes[1].set_ylim(0, 1500)
-        self.ui.mpl_widget.axes[1].set_ylabel('Angle (deg) and Angular Velocity (deg/s)', color='g')
+        self.ui.mpl_widget.axes[1].set_ylim(0, 2000)
+        self.ui.mpl_widget.axes[1].set_ylabel('Angular Velocity (deg/s)', color='g')
         self.ui.mpl_widget.axes[0].set_xlim(xmin=0, xmax=0.6, auto=False)
         self.ui.mpl_widget.canvas.axes.grid('both')
 
@@ -263,26 +267,28 @@ class AppWindow(QMainWindow):
         self.ui.mpl_widget.canvas.axes.clear()
         self.decorate_plot()
 
+        # use the entire path including the leadout
         path = self.path.path_points[:-1]
-        time = [s.time for s in path]
-        angular_velocity = np.array([s.omega for s in path])
-        self.ui.mpl_widget.canvas.axes.plot(time, angular_velocity * 2, 'b')
-        v = np.array([s.speed for s in path])
-        self.ui.mpl_widget.canvas.axes.plot(time, v, 'g-.')
+        path_time = [s.time for s in path]
+        omega = np.array([s.omega for s in path])
+        speed = np.array([s.speed for s in path])
+        left_speed = speed + self.robot.radius * np.radians(omega)
+        right_speed = speed - self.robot.radius * np.radians(omega)
 
-        np_omega = np.array([math.radians(s.omega) for s in path])
-        np_speed = np.array([s.speed for s in path])
-        np_left_speed = np_speed + 37 * np_omega
-        np_right_speed = np_speed - 37 * np_omega
-        self.ui.mpl_widget.canvas.axes.plot(time, np_left_speed, 'b', linestyle='dotted')
-        self.ui.mpl_widget.canvas.axes.plot(time, np_right_speed, 'b', linestyle='dotted')
+        self.ui.mpl_widget.canvas.axes.plot(path_time, omega * 2, 'g')
+        self.ui.mpl_widget.canvas.axes.plot(path_time, speed, 'b', linestyle='dotted')
+        self.ui.mpl_widget.canvas.axes.plot(path_time, left_speed, 'b', linestyle='solid')
+        self.ui.mpl_widget.canvas.axes.plot(path_time, right_speed, 'b', linestyle='solid')
 
+
+        #  this call is VERY slow. everything else takes about 3ms. This takes 30ms!
+        ## consider using pyqtgraph
         self.ui.mpl_widget.canvas.draw()
+
 
     def re_calculate(self):
         start_x = self.ui.startXSpinBox.value()
         start_y = self.ui.startYSpinBox.value()
-        # self.set_offset(self.current_params.offs)
 
         # recalculate the path
         self.path.calculate(self.current_profile, self.current_params, start_x, start_y)
@@ -299,7 +305,7 @@ class AppWindow(QMainWindow):
 
         global calc_count
         calc_count += 1
-        self.ui.textEdit.append(f"recalc - {self.path.path_count():4d} [{calc_count}] {int(state.x)},{int(state.y)} @ {state.theta:.1f}")
+        # self.ui.textEdit.append(f"recalc - {self.path.path_count():4d} [{calc_count}] {int(state.x)},{int(state.y)} @ {state.theta:.1f}")
 
 
 # ============================================================================#
