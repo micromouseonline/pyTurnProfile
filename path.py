@@ -50,6 +50,31 @@ class Path(QGraphicsItem):
         state = self.get_state_at(index)
         return state.get_pose()
 
+    def get_max_acceleration(self):
+        max_acc = 0
+        for state in self.path_points[:self.turn_end]:
+            if state.acceleration > max_acc:
+                max_acc = state.acceleration
+        return max_acc
+
+    def get_max_alpha(self):
+        max_alpha = 0
+        for state in self.path_points[:self.turn_end]:
+            if state.alpha > max_alpha:
+                max_alpha = state.alpha
+        return max_alpha
+
+    def get_max_omega(self):
+        max_omega = 0
+        for state in self.path_points[:self.turn_end]:
+            if state.omega > max_omega:
+                max_omega = state.omega
+        return max_omega
+
+
+
+
+
     def paint(self, painter, option, widget):
         if len(self.path_points) == 0:
             return
@@ -90,10 +115,10 @@ class Path(QGraphicsItem):
             state.update()
             self.path_points.append(copy.copy(state))
 
-    def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty):
+    def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty, loop_interval):
         self.path_points.clear()
         state = RobotState()
-        state.set_interval(0.001)
+        state.set_interval(loop_interval)
         state.x = startx
         state.y = starty
         state.speed = params.speed
