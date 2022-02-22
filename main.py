@@ -51,8 +51,8 @@ class AppWindow(QMainWindow):
 
         # connect everything up
         self.ui.deltaSpinBox.valueChanged.connect(self.set_delta)
-        self.ui.cubicLengthSpinBox.valueChanged.connect(self.re_calculate)
-        self.ui.gammaSpinBox.valueChanged.connect(self.re_calculate)
+        self.ui.cubicLengthSpinBox.valueChanged.connect(self.set_length)
+        self.ui.gammaSpinBox.valueChanged.connect(self.set_gamma)
         self.ui.offsetSpinBox.valueChanged.connect(self.set_offset)
 
         self.ui.turnSpeedSpinBox.valueChanged.connect(self.set_speed)
@@ -163,7 +163,7 @@ class AppWindow(QMainWindow):
 
     def set_speed(self, speed):
         self.current_params.speed = speed
-        acceleration = speed * speed / self.ui.radiusSpinBox.value()
+        acceleration  = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.ui.accelerationSpinBox.blockSignals(True)
         self.ui.accelerationSpinBox.setValue(int(acceleration))
         self.ui.accelerationSpinBox.blockSignals(False)
@@ -171,12 +171,24 @@ class AppWindow(QMainWindow):
 
     def set_radius(self, radius):
         self.current_params.radius = radius
-        speed = self.ui.turnSpeedSpinBox.value()
-        acceleration = speed * speed / radius
+        acceleration  = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.ui.accelerationSpinBox.blockSignals(True)
         self.ui.accelerationSpinBox.setValue(int(acceleration))
         self.ui.accelerationSpinBox.blockSignals(False)
         self.re_calculate()
+
+    def set_length(self, length):
+        self.current_params.length = length
+        acceleration= self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        self.ui.accelerationSpinBox.blockSignals(True)
+        self.ui.accelerationSpinBox.setValue(int(acceleration))
+        self.ui.accelerationSpinBox.blockSignals(False)
+        self.re_calculate()
+
+    def set_gamma(self,gamma):
+        self.current_params.gamma = gamma/100.0
+        self.re_calculate()
+
 
     def set_acceleration(self, acceleration):
         self.current_params.acceleration = acceleration
@@ -265,6 +277,8 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append(f"    Exit Angle: {exit_state.theta:5.1f} deg")
         self.ui.textEdit.append(f"      Distance: {exit_state.distance:5.0f} deg")
         self.ui.textEdit.append(f"          Time: {exit_state.time:5.3f} sec")
+        cubic_acc = self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        self.ui.textEdit.append(f"          accn: {cubic_acc:5.1f} sec")
         self.ui.textEdit.append("")
 
 
@@ -321,6 +335,7 @@ class AppWindow(QMainWindow):
 
 
     def re_calculate(self):
+
         start_x = self.ui.startXSpinBox.value()
         start_y = self.ui.startYSpinBox.value()
 
