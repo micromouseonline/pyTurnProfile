@@ -8,7 +8,7 @@ class Background(QGraphicsItem):
         super().__init__()
 
     def boundingRect(self):
-        return QRectF(0, 0, 360, 360)
+        return QRectF(-120, -120, 420, 420)
 
     def paint(self, painter, option, widget):
         painter.fillRect(self.boundingRect(),Qt.black)
