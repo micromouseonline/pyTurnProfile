@@ -123,7 +123,7 @@ class AppWindow(QMainWindow):
         else:
             return
         self.set_parameters(params)
-        self.set_safely(self.ui.progressSlider,0)
+        self.set_safely(self.ui.progressSlider, 0)
         self.re_calculate()
 
     # another grouped radio button event
@@ -157,7 +157,7 @@ class AppWindow(QMainWindow):
             self.ui.gammaSpinBox.setEnabled(True)
         if self.current_profile == old_profile:
             return
-        # print(self.current_profile)
+
         # force recalculation of the spinners
         self.set_speed(self.current_params.speed)
         self.ui.progressSlider.setValue(0)
@@ -173,7 +173,7 @@ class AppWindow(QMainWindow):
         '''
         self.current_params.speed = speed
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.set_safely(self.ui.accelerationSpinBox,int(acceleration))
+        self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.re_calculate()
 
     def set_radius(self, radius):
@@ -185,9 +185,7 @@ class AppWindow(QMainWindow):
         '''
         self.current_params.radius = radius
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.ui.accelerationSpinBox.blockSignals(True)
-        self.ui.accelerationSpinBox.setValue(int(acceleration))
-        self.ui.accelerationSpinBox.blockSignals(False)
+        self.set_safely(self.ui.accelerationSpinBox,int(acceleration))
         self.re_calculate()
 
     def set_length(self, length):
@@ -212,9 +210,7 @@ class AppWindow(QMainWindow):
         radius = self.ui.radiusSpinBox.value()
         speed = math.sqrt(acceleration * radius)
         self.current_params.speed = speed
-        self.ui.turnSpeedSpinBox.blockSignals(True)
-        self.ui.turnSpeedSpinBox.setValue(int(speed))
-        self.ui.turnSpeedSpinBox.blockSignals(False)
+        self.set_safely(self.ui.turnSpeedSpinBox,int(speed))
         self.re_calculate()
 
     def set_delta(self, delta):
@@ -255,7 +251,6 @@ class AppWindow(QMainWindow):
         self.set_speed(speed_now)
         self.re_calculate()
 
-    # this is probably redundant
     def set_path_position(self):
         i = self.ui.progressSlider.value()
         state = self.path.get_state_at(i)
@@ -366,7 +361,6 @@ class AppWindow(QMainWindow):
 
         global calc_count
         calc_count += 1
-        # self.ui.textEdit.append(f"recalc - {self.path.path_count():4d} [{calc_count}] {int(state.x)},{int(state.y)} @ {state.theta:.1f}")
 
 
 # ============================================================================#
