@@ -30,7 +30,6 @@ class Background(QGraphicsItem):
         painter.drawLine(-90, -90, -90, 270)
         painter.drawLine(-90, -90, 90, -90)
         painter.drawLine(-90, 270, 270, 270)
-        # painter.drawLine(90, 90, 90, 270)
 
         # posts
         painter.setPen(postPen)

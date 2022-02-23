@@ -24,7 +24,7 @@ default_params = {
     "DS135": TurnParameters(pivot_x=90, pivot_y=0, offset=105, delta=90, radius=80, startAngle=45, angle=135, speed=1800, length=257),
     "DD90": TurnParameters(pivot_x=90, pivot_y=0, offset=105, delta=80, radius=74, startAngle=45, angle=90, speed=1800, length=173),
     "SS90E": TurnParameters(pivot_x=0, pivot_y=0, offset=75, delta=50, radius=56, startAngle=0, angle=90, speed=1000, length=124),
-    "DD90K": TurnParameters(pivot_x=0, pivot_y=0, offset=75, delta=50, radius=174, startAngle=45, angle=90, speed=1000, length=334),
+    "DD90K": TurnParameters(pivot_x=0, pivot_y=0, offset=100, delta=50, radius=199, startAngle=45, angle=90, speed=1000, length=371),
 }
 
 working_params = {

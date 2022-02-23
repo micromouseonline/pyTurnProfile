@@ -73,18 +73,18 @@ class Robot(QGraphicsItem):
         right_outer = self.width // 2
         right_inner = right_outer - wheel_width - 2
         recess_offs = 32
-        painter.drawArc(left_outer, -recess_offs - self.width //
-                        2, self.width, self.width, 0, 180 * 16)  # front arc
-        painter.drawLine(left_outer, -recess_offs,
-                         left_inner, -recess_offs)  # wheel step left
-        painter.drawLine(right_outer, -recess_offs,
-                         right_inner, -recess_offs)  # wheel step right
-        painter.drawLine(left_inner, -recess_offs, left_inner,
-                         recess_offs)  # wheel well left side
-        painter.drawLine(right_inner, -recess_offs, right_inner,
-                         recess_offs)  # wheel well right side
-        painter.drawLine(left_inner, recess_offs, right_inner,
-                         recess_offs)  # rear edge
+        # front arc
+        painter.drawArc(left_outer, -recess_offs - self.width // 2, self.width, self.width, 0, 180 * 16)
+        # wheel step left
+        painter.drawLine(left_outer, -recess_offs, left_inner, -recess_offs)
+        # wheel step right
+        painter.drawLine(right_outer, -recess_offs, right_inner, -recess_offs)
+        # wheel well left side
+        painter.drawLine(left_inner, -recess_offs, left_inner, recess_offs)
+        # wheel well right side
+        painter.drawLine(right_inner, -recess_offs, right_inner, recess_offs)
+        # rear edge
+        painter.drawLine(left_inner, recess_offs, right_inner, recess_offs)
         # SENSORS
         pen.setColor(Qt.green)
         painter.setPen(pen)
@@ -100,4 +100,3 @@ class Robot(QGraphicsItem):
         sensor_origin = QPointF(-30, -37)
         self.draw_sensor(painter, sensor_origin, 180 - self.front_sensor_angle, 120)
         self.draw_wheels(painter)
-        pass

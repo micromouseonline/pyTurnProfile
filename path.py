@@ -78,9 +78,6 @@ class Path(QGraphicsItem):
         pen = QPen(Qt.white)
         pen.setWidthF(2.0)
         painter.setPen(pen)
-        rect = QRectF(self.min_x, self.min_y, self.max_x - self.min_x, self.max_y - self.min_y)
-        # rect.adjust(5,5,-5,-5)
-        # painter.drawRect(rect)
         for i in range(0, len(self.path_points), 5):
             state = self.path_points[i]
             pen.setColor(colors[state.phase])
