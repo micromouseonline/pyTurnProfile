@@ -11,6 +11,7 @@ class Background(QGraphicsItem):
         return QRectF(0, 0, 360, 360)
 
     def paint(self, painter, option, widget):
+        painter.fillRect(self.boundingRect(),Qt.black)
         wallPen = QPen(QColor(255, 0, 0, 90))
         postPen = QPen(QColor(255, 0, 0, 180))
         linePen = QPen(QColor(255, 0, 0, 90))
