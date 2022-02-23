@@ -1,4 +1,5 @@
 import math
+import os
 import time
 from background import Background
 from parameters import TurnParameters, default_params
@@ -13,6 +14,8 @@ from mplwidget import MplWidget
 from PyQt5.QtCore import (Qt, QObject)
 from PyQt5.QtGui import QBrush, QPainter, QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
+# this may or may not help with high DPI screen
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
