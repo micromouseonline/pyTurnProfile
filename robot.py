@@ -31,7 +31,7 @@ class Robot(QGraphicsItem):
         self.set_heading(self.pose.x, self.pose.y)
 
     def boundingRect(self):
-        return QRectF(-160, -160, 320, 200)
+        return QRectF(-170, -170, 340, 220)
 
     def draw_wheels(self, painter):
         pen = QPen()
