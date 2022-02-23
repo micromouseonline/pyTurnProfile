@@ -20,9 +20,7 @@ os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 from PyQt5.QtCore import QT_VERSION_STR
 
 version = list(map(int, QT_VERSION_STR.split('.')))
-print(version[0])
-print(version[1])
-print(version[2])
+
 if version[1] >= 14:
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 if hasattr(Qt, "AA_EnableHighDpiScaling"):
