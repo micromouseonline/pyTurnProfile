@@ -16,6 +16,7 @@ from PyQt5.QtGui import QBrush, QPainter, QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
 # this may or may not help with high DPI screen
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
 QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
