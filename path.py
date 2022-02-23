@@ -87,7 +87,6 @@ class Path(QGraphicsItem):
             painter.setPen(pen)
             rect = QRectF(state.x, state.y, 1.0, 1.0)
             painter.drawEllipse(rect)
-            # painter.drawEllipse(int(state.x - 1), int(state.y - 1), 1, 1)
 
     def calculate_trapezoid(self, params: TurnParameters, startx, starty, loop_interval):
         self.path_points.clear()
