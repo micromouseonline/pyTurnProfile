@@ -13,6 +13,8 @@ from mplwidget import MplWidget
 from PyQt5.QtCore import (Qt, QObject)
 from PyQt5.QtGui import QBrush, QPainter, QIcon
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
 
 draw_count = 0
 calc_count = 0
