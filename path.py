@@ -114,16 +114,8 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        state.phase = 4
-        state.omega = 0
-        state.update()
-        self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)
-        for i in range(100):
-            state.update()
-            self.path_points.append(copy.copy(state))
-
-        # self.calculate_leadout()
+        self.turn_end = len(self.path_points)-1
+        self.calculate_leadout(state)
         self.update()
 
     def calculate_sinusoid(self, params: TurnParameters, startx, starty, loop_interval):
@@ -157,18 +149,9 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        state.phase = 4
-        state.omega = 0
-        state.update()
-        self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)
-        for i in range(100):
-            state.update()
-            self.path_points.append(copy.copy(state))
-
-        # self.calculate_leadout()
+        self.turn_end = len(self.path_points)-1
+        self.calculate_leadout(state)
         self.update()
-        pass
 
     def calculate_quadratic(self, params: TurnParameters, startx, starty, loop_interval):
         self.path_points.clear()
@@ -201,16 +184,8 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        state.phase = 4
-        state.omega = 0
-        state.update()
-        self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)
-        for i in range(100):
-            state.update()
-            self.path_points.append(copy.copy(state))
-
-        # self.calculate_leadout()
+        self.turn_end = len(self.path_points)-1
+        self.calculate_leadout(state)
         self.update()
 
     def calculate_cubic(self, params: TurnParameters, startx, starty, loop_interval):
@@ -244,22 +219,13 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        state.phase = 4
-        state.omega = 0
-        state.update()
-        self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)
-        for i in range(100):
-            state.update()
-            self.path_points.append(copy.copy(state))
-
-        # self.calculate_leadout()
+        self.turn_end = len(self.path_points)-1
+        self.calculate_leadout(state)
         self.update()
 
-    def calculate_leadout(self):
-        print(self.turn_end)
-        state = self.path_points[self.turn_end - 1]
+    def calculate_leadout(self, state : RobotState):
         state.phase = 4
+        state.omega = 0
         target_distance = state.distance + 100.0
         while state.distance < target_distance:
             state.update()
