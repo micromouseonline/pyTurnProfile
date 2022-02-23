@@ -114,6 +114,7 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
+        state.phase = 4
         state.omega = 0
         state.update()
         self.path_points.append(copy.copy(state))
@@ -156,6 +157,7 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
+        state.phase = 4
         state.omega = 0
         state.update()
         self.path_points.append(copy.copy(state))
@@ -199,6 +201,7 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
+        state.phase = 4
         state.omega = 0
         state.update()
         self.path_points.append(copy.copy(state))
@@ -241,6 +244,7 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
+        state.phase = 4
         state.omega = 0
         state.update()
         self.path_points.append(copy.copy(state))
