@@ -17,8 +17,12 @@ from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
 # this may or may not help with high DPI screen
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
-QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
+if hasattr(Qt, "AA_EnableHighDpiScaling"):
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
+if hasattr(Qt, "AA_UseHighDpiPixmaps"):
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
 
 draw_count = 0
 calc_count = 0
@@ -99,6 +103,7 @@ class AppWindow(QMainWindow):
         self.ui.rbTrapezoid.blockSignals(False)
         self.ui.rbTrapezoid.click()
         self.ui.rbTrapezoid.blockSignals(False)
+
 
     # called from toggle event for a radio button in
     # a group so there will be two calls - one for the button
@@ -378,6 +383,8 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon('pyTurnProfiler.png'))
     window = AppWindow()
     window.setWindowTitle("PyQt Micromouse Turn Simulator")
-
+    # for screen in app.screens():
+    #     screen_dpi = screen.logicalDotsPerInch()
+    #     print(screen_dpi)
     window.show()
     sys.exit(app.exec_())
