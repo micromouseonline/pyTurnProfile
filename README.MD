@@ -31,7 +31,7 @@ The advantage of this technique is that minimised the angular acceleration and s
 without and rapid changes in angular velocity that may cause the mouse to lose traction. the disadvantage is that 
 the peak centripetal acceleration will be a little higher although only for a short time.
 
-There are more details in comment block in the code in the file `path.py`
+There are more details in comment block in the code in the file `turn_profiles.md`
 
 ## Turn pivot point
 
