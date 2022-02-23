@@ -33,6 +33,26 @@ the peak centripetal acceleration will be a little higher although only for a sh
 
 There are more details in comment block in the code in the file `path.py`
 
+## Turn pivot point
+
+Each turn has a single point that is used, with the start angle, to define the start posiition for that turn. The 
+pivot point is a point that the mouse would have to use if it were to perform the turn with an in-place turn. Turn 
+like the SS135 that cannot be performed with a single pivot turn, use the position of the first of a pair of points.
+
+For (my) convenience, the origin of the coordinate system is the centre of the top left cell in the diagram, The 
+orange lines are the x and y axes. Positive is to the right and downwards as is usual, and annoying, on graphic displays
+
+That actual starting position for the turn is offset back from the pivot point in the direction from which the 
+mouse is heading. For example, the SS90F turn could be performed by executing a 90 degree pivot turn at the origin. 
+It should be clear that the actual turn must start some distance before that. The offset should not be so great that 
+any previous turn may not have finished. It should also allow some extra space so that faster turns can be started 
+even earlier to compensate for wheel slip.
+
+## Wheel slip
+
+In this version wheel slip and the effects of slip angle are not modelled. The main reason of bringing this 
+application up to date and placing it on github is specifically to begin adding in slip angle modelling so if you 
+can help, let me know.
 
 # Install and Run
 This version was written using Python 3.8.10 running on a Linux machine. You should be able to copy the repository 
