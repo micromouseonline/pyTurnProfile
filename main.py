@@ -60,6 +60,7 @@ class AppWindow(QMainWindow):
         font.setFamily("Monospace")
         font.setStyleHint(QFont.TypeWriter)
         self.ui.lblPathView.setFont(font)
+        self.ui.textEdit.setFont(font)
 
         # these will be needed as references to the plotted data
         self.plot_ref_omega = None
