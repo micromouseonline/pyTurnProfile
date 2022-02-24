@@ -12,7 +12,7 @@ import random
 import numpy as np
 from mplwidget import MplWidget
 from PyQt5.QtCore import (Qt, QObject)
-from PyQt5.QtGui import QBrush, QPainter, QIcon
+from PyQt5.QtGui import QBrush, QPainter, QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
 # this may or may not help with high DPI screen
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
@@ -54,6 +54,12 @@ class AppWindow(QMainWindow):
         self.path_scene.addItem(self.path)
 
         self.loop_interval = 0.001
+
+        # fix up the font in the textEdit box
+        font = QFont()
+        font.setFamily("Monospace")
+        font.setStyleHint(QFont.TypeWriter)
+        self.ui.lblPathView.setFont(font)
 
         # these will be needed as references to the plotted data
         self.plot_ref_omega = None
