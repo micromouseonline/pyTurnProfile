@@ -328,6 +328,7 @@ class AppWindow(QMainWindow):
 
         self.ui.mpl_widget.figure.tight_layout()
         return
+        self.ui.mpl_widget.axes[0][0].set_ylim(0, 4000)
         self.ui.mpl_widget.axes[0][0].spines['top'].set_visible(False)
 
         self.ui.mpl_widget.axes[1][0].spines['top'].set_visible(False)
@@ -336,7 +337,6 @@ class AppWindow(QMainWindow):
 
         self.ui.mpl_widget.axes[0][0].set_frame_on(True)
         self.ui.mpl_widget.axes[0][0].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0][0].set_ylim(0, 4000)
         self.ui.mpl_widget.axes[0][0].set_ylabel('speed (mm/s)', color='b')
 
         self.ui.mpl_widget.axes[1][0].set_ylim(0, 2000)
@@ -366,29 +366,31 @@ class AppWindow(QMainWindow):
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
         # self.ui.mpl_widget.axes[1][1].cla()
-        axes[1][1].plot(path_time, omega)
+
+        axes[0][0].plot(path_time, 0.001 * speed)
+        axes[0][0].set_ylim(0, 3)
+        axes[0][0].set(ylabel='speed (m/s)', title='turn speed (m/s)')
+        axes[0][1].set(title='wheel speeds (m/s)')
+
+        axes[0][1].plot(path_time, 0.001 * left_speed, 'b', linestyle='solid')
+        axes[0][1].plot(path_time, 0.001 * right_speed, 'c', linestyle='solid')
+
+        axes[1][0].set(title="centr'l acc (m/s/s)")
+        axes[1][0].plot(path_time, 0.001 * speed * np.radians(omega), 'g', linestyle='solid')
+        axes[1][0].set_ylim(0, 70)
+        axes[1][0].set_yticks([0, 15, 30, 45, 60])
+
         axes[1][1].set(title='Omega (deg/s)')
+        # axes[1][0].set_ylim(0, 1200)
+        axes[1][1].plot(path_time, np.radians(omega))
 
-        axes[0][0].plot(path_time, speed)
-        axes[0][0].set_ylim(0, 3000)
-        axes[0][0].set(ylabel='speed (mm/s)', title='turn speed (mm/s)')
-        axes[0][1].set(title='wheel speeds (mm/s)')
+        axes[2][0].set(title='Wheel acc. (m/s/s)')
+        axes[2][0].plot(path_time, 0.001 * self.robot.radius * np.radians(alpha), 'g', linestyle='solid')
+        axes[2][0].set_ylim(-25, 25)
 
-        # self.ui.mpl_widget.axes[1][1].set(xlabel='X Values', ylabel='Y Values',
-        #                                   title='Derivative Function of f')
-        # self.ui.mpl_widget.canvas.axes.plot(path_time, omega * 2, 'g')
-        # self.ui.mpl_widget.canvas.axes.plot(path_time, speed, 'b', linestyle='dotted')
-        axes[0][1].plot(path_time, left_speed, 'b', linestyle='solid')
-        axes[0][1].plot(path_time, right_speed, 'c', linestyle='solid')
-
-        axes[1][0].set(title="centr'l acc (mm/s/s)")
-        axes[1][0].plot(path_time, speed * np.radians(omega), 'g', linestyle='solid')
-
-        axes[2][0].plot(path_time, self.robot.radius * np.radians(alpha), 'g', linestyle='solid')
-        axes[2][0].set(title='Wheel acc. (mm/s/s)')
-
-        axes[2][1].plot(path_time, alpha, 'g', linestyle='solid')
-        axes[2][1].set(title='Angular acc. (deg/s/s)')
+        axes[2][1].plot(path_time, 0.001*alpha, 'g', linestyle='solid')
+        # axes[2][1].set_ylim(-600, 600)
+        axes[2][1].set(title='Angular acc. (1000 rad/s/s)')
 
         # axes[1][0].plot(path_time, speed*omega, 'g', linestyle='solid')
 
