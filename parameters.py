@@ -16,7 +16,7 @@ class TurnParameters:
 
 
 default_params = {
-    "SS90F": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=100, radius=112, startAngle=0, angle=90, speed=2200, length=248),
+    "SS90F": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=68, radius=112, startAngle=0, angle=90, speed=2200, length=248),
     "SS180": TurnParameters(pivot_x=0, pivot_y=0, offset=160, delta=127, radius=85, startAngle=0, angle=180, speed=2000, length=370),
     "SD45": TurnParameters(pivot_x=0, pivot_y=0, offset=160, delta=65, radius=110, startAngle=0, angle=45, speed=2200, length=134),
     "SD135": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=90, radius=83, startAngle=0, angle=135, speed=1800, length=266),

@@ -14,8 +14,9 @@ from robot_state import RobotState
 class ProfileType(Enum):
     TRAPEZOID = 1
     SINUSOID = 2
-    QUADRATIC = 3
-    CUBIC = 4
+    FULL_SINUSOID = 3
+    QUADRATIC = 4
+    CUBIC = 5
 
 
 class Path(QGraphicsItem):
@@ -114,7 +115,7 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)-1
+        self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
         self.update()
 
@@ -149,7 +150,33 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)-1
+        self.turn_end = len(self.path_points) - 1
+        self.calculate_leadout(state)
+        self.update()
+
+    def calculate_full_sinusoid(self, params: TurnParameters, startx, starty, loop_interval):
+        self.path_points.clear()
+        state = RobotState()
+        state.set_interval(loop_interval)
+        state.x = startx
+        state.y = starty
+        state.speed = params.speed
+        state.theta = params.startAngle
+        self.path_points.append(copy.copy(state))
+        end_angle = params.startAngle + params.angle
+        radius = 4.0*params.delta/(math.pi*math.radians(params.angle))
+        arc_omega = math.degrees(params.speed / radius)
+        turn_distance = 2 * params.delta
+        # while state.distance < turn_distance:
+        while abs(state.theta - end_angle) > 0.01:
+            t = state.distance / turn_distance
+            state.omega = arc_omega * math.sin(math.pi * t)
+            if state.omega < math.radians(1):
+                state.omega = math.radians(1)
+            state.phase = 2
+            state.update()
+            self.path_points.append(copy.copy(state))
+        self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
         self.update()
 
@@ -184,7 +211,7 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)-1
+        self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
         self.update()
 
@@ -219,11 +246,11 @@ class Path(QGraphicsItem):
                 state.phase = 3
             state.update()
             self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points)-1
+        self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
         self.update()
 
-    def calculate_leadout(self, state : RobotState):
+    def calculate_leadout(self, state: RobotState):
         state.phase = 4
         state.omega = 0
         state.alpha=0
@@ -237,6 +264,8 @@ class Path(QGraphicsItem):
             self.calculate_quadratic(params, startx, starty, loop_interval)
         elif profile_type == ProfileType.SINUSOID:
             self.calculate_sinusoid(params, startx, starty, loop_interval)
+        elif profile_type == ProfileType.FULL_SINUSOID:
+            self.calculate_full_sinusoid(params, startx, starty, loop_interval)
         elif profile_type == ProfileType.CUBIC:
             self.calculate_cubic(params, startx, starty, loop_interval)
         else:

@@ -602,6 +602,13 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item>
+      <widget class="QRadioButton" name="rbFullSine">
+       <property name="text">
+        <string>Full Sinusoid</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QRadioButton" name="rbQuadratic">
        <property name="text">
         <string>Quadratic</string>

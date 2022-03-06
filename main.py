@@ -97,6 +97,7 @@ class AppWindow(QMainWindow):
         # # profile type selectors
         self.ui.rbTrapezoid.toggled.connect(self.set_profile_type)
         self.ui.rbSinusoid.toggled.connect(self.set_profile_type)
+        self.ui.rbFullSine.toggled.connect(self.set_profile_type)
         self.ui.rbQuadratic.toggled.connect(self.set_profile_type)
         self.ui.rbCubic.toggled.connect(self.set_profile_type)
 
@@ -166,6 +167,12 @@ class AppWindow(QMainWindow):
             self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
             self.ui.gammaSpinBox.setEnabled(False)
+        elif self.ui.rbFullSine.isChecked():
+            self.current_profile = ProfileType.FULL_SINUSOID
+            self.ui.deltaSpinBox.setEnabled(False)
+            self.ui.radiusSpinBox.setEnabled(True)
+            self.ui.cubicLengthSpinBox.setEnabled(False)
+            self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbQuadratic.isChecked():
             self.current_profile = ProfileType.QUADRATIC
             self.ui.deltaSpinBox.setEnabled(True)
@@ -183,6 +190,7 @@ class AppWindow(QMainWindow):
 
         # force recalculation of the spinners
         self.set_speed(self.current_params.speed)
+        self.set_radius(self.current_params.radius)
         self.ui.progressSlider.setValue(0)
         self.re_calculate()
 
@@ -208,7 +216,11 @@ class AppWindow(QMainWindow):
         '''
         self.current_params.radius = radius
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
+        self.set_safely(self.ui.accelerationSpinBox,int(acceleration))
+        if self.ui.rbFullSine.isChecked():
+            delta = math.pi*math.radians(self.current_params.angle)*radius/4.0
+            self.ui.deltaSpinBox.setValue(int(delta))
+            # self.set(self.ui.deltaSpinBox,int(delta))
         self.re_calculate()
 
     def set_length(self, length):
@@ -238,6 +250,9 @@ class AppWindow(QMainWindow):
 
     def set_delta(self, delta):
         self.current_params.delta = delta
+        if self.ui.rbFullSine.isChecked():
+            radius = int(delta*4.0/(math.pi*math.radians(self.current_params.angle)))
+            self.set_safely(self.ui.radiusSpinBox,radius)
         self.re_calculate()
 
     def set_offset(self, offset):
@@ -318,30 +333,22 @@ class AppWindow(QMainWindow):
         Pretties up the plot. Sets spines, ticks, labels
         :return: nothing
         '''
-        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
-        self.ui.mpl_widget.axes[2][0].set_xlim(xmin=0, xmax=0.6, auto=False)
-        # self.ui.mpl_widget.axes[2][0].set_xticks([0.3])
-        self.ui.mpl_widget.axes[2][0].grid(visible=True, axis='x', color='#cfc')
-
-        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
-        self.ui.mpl_widget.axes[2][1].set_xlabel('Time (s)')
-
-        self.ui.mpl_widget.figure.tight_layout()
-        return
-        self.ui.mpl_widget.axes[0][0].set_ylim(0, 4000)
-        self.ui.mpl_widget.axes[0][0].spines['top'].set_visible(False)
-
-        self.ui.mpl_widget.axes[1][0].spines['top'].set_visible(False)
-        self.ui.mpl_widget.axes[1][0].set_frame_on(True)
-        self.ui.mpl_widget.axes[1][0].patch.set_visible(False)
-
-        self.ui.mpl_widget.axes[0][0].set_frame_on(True)
-        self.ui.mpl_widget.axes[0][0].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0][0].set_ylabel('speed (mm/s)', color='b')
-
-        self.ui.mpl_widget.axes[1][0].set_ylim(0, 2000)
-        self.ui.mpl_widget.axes[1][0].set_ylabel('Angular Velocity (deg/s)', color='g')
-        # self.ui.mpl_widget.canvas.axes.grid('both')
+        self.ui.mpl_widget.figure.subplots_adjust(left=0.15)
+        self.ui.mpl_widget.figure.subplots_adjust(right=0.85)
+        self.ui.mpl_widget.figure.subplots_adjust(top=0.9)
+        self.ui.mpl_widget.axes[0].set_xlabel('Time (seconds)')
+        self.ui.mpl_widget.axes[0].spines['top'].set_visible(False)
+        self.ui.mpl_widget.axes[1].spines['top'].set_visible(False)
+        self.ui.mpl_widget.axes[1].set_frame_on(True)
+        self.ui.mpl_widget.axes[1].patch.set_visible(False)
+        self.ui.mpl_widget.axes[0].set_frame_on(True)
+        self.ui.mpl_widget.axes[0].patch.set_visible(False)
+        self.ui.mpl_widget.axes[0].set_ylim(0, 4000)
+        self.ui.mpl_widget.axes[0].set_ylabel('speed (mm/s)', color='b')
+        self.ui.mpl_widget.axes[1].set_ylim(0, 2000)
+        self.ui.mpl_widget.axes[1].set_ylabel('Angular Velocity (deg/s)', color='g')
+        self.ui.mpl_widget.axes[0].set_xlim(xmin=0, xmax=0.4, auto=False)
+        self.ui.mpl_widget.canvas.axes.grid('both')
 
     def plot_data(self):
         '''
