@@ -14,6 +14,7 @@ from mplwidget import MplWidget
 from PyQt5.QtCore import (Qt, QObject)
 from PyQt5.QtGui import QBrush, QPainter, QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
+
 # this may or may not help with high DPI screen
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
@@ -28,7 +29,6 @@ if hasattr(Qt, "AA_EnableHighDpiScaling"):
 
 if hasattr(Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-
 
 draw_count = 0
 calc_count = 0
@@ -116,7 +116,6 @@ class AppWindow(QMainWindow):
         self.ui.rbTrapezoid.blockSignals(False)
         self.ui.rbTrapezoid.click()
         self.ui.rbTrapezoid.blockSignals(False)
-
 
     # called from toggle event for a radio button in
     # a group so there will be two calls - one for the button
@@ -209,7 +208,7 @@ class AppWindow(QMainWindow):
         '''
         self.current_params.radius = radius
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.set_safely(self.ui.accelerationSpinBox,int(acceleration))
+        self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.re_calculate()
 
     def set_length(self, length):
@@ -234,7 +233,7 @@ class AppWindow(QMainWindow):
         radius = self.ui.radiusSpinBox.value()
         speed = math.sqrt(acceleration * radius)
         self.current_params.speed = speed
-        self.set_safely(self.ui.turnSpeedSpinBox,int(speed))
+        self.set_safely(self.ui.turnSpeedSpinBox, int(speed))
         self.re_calculate()
 
     def set_delta(self, delta):
@@ -319,22 +318,28 @@ class AppWindow(QMainWindow):
         Pretties up the plot. Sets spines, ticks, labels
         :return: nothing
         '''
-        self.ui.mpl_widget.figure.subplots_adjust(left=0.15)
-        self.ui.mpl_widget.figure.subplots_adjust(right=0.85)
-        self.ui.mpl_widget.figure.subplots_adjust(top=0.9)
-        self.ui.mpl_widget.axes[0].set_xlabel('Time (seconds)')
-        self.ui.mpl_widget.axes[0].spines['top'].set_visible(False)
-        self.ui.mpl_widget.axes[1].spines['top'].set_visible(False)
-        self.ui.mpl_widget.axes[1].set_frame_on(True)
-        self.ui.mpl_widget.axes[1].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0].set_frame_on(True)
-        self.ui.mpl_widget.axes[0].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0].set_ylim(0, 4000)
-        self.ui.mpl_widget.axes[0].set_ylabel('speed (mm/s)', color='b')
-        self.ui.mpl_widget.axes[1].set_ylim(0, 2000)
-        self.ui.mpl_widget.axes[1].set_ylabel('Angular Velocity (deg/s)', color='g')
-        self.ui.mpl_widget.axes[0].set_xlim(xmin=0, xmax=0.6, auto=False)
-        self.ui.mpl_widget.canvas.axes.grid('both')
+        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
+        self.ui.mpl_widget.axes[2][0].set_xlim(xmin=0, xmax=0.6, auto=False)
+        self.ui.mpl_widget.axes[2][0].set_xticks([0.3])
+        self.ui.mpl_widget.axes[2][0].grid(visible=True,axis='x',color='#cfc')
+        return
+
+        self.ui.mpl_widget.axes[2][1].set_xlabel('Time (s)')
+
+        self.ui.mpl_widget.axes[0][0].spines['top'].set_visible(False)
+
+        self.ui.mpl_widget.axes[1][0].spines['top'].set_visible(False)
+        self.ui.mpl_widget.axes[1][0].set_frame_on(True)
+        self.ui.mpl_widget.axes[1][0].patch.set_visible(False)
+
+        self.ui.mpl_widget.axes[0][0].set_frame_on(True)
+        self.ui.mpl_widget.axes[0][0].patch.set_visible(False)
+        self.ui.mpl_widget.axes[0][0].set_ylim(0, 4000)
+        self.ui.mpl_widget.axes[0][0].set_ylabel('speed (mm/s)', color='b')
+
+        self.ui.mpl_widget.axes[1][0].set_ylim(0, 2000)
+        self.ui.mpl_widget.axes[1][0].set_ylabel('Angular Velocity (deg/s)', color='g')
+        # self.ui.mpl_widget.canvas.axes.grid('both')
 
     def plot_data(self):
         '''
@@ -344,8 +349,11 @@ class AppWindow(QMainWindow):
         and just updating the data used.
         :return: Nothing
         '''
-        self.ui.mpl_widget.canvas.axes.clear()
-        self.decorate_plot()
+        axes = self.ui.mpl_widget.axes
+        for row in axes:
+            for ax in row:
+                ax.cla()
+                ax.grid('on')
 
         # use the entire path including the leadout
         path = self.path.path_points[:-1]
@@ -354,15 +362,23 @@ class AppWindow(QMainWindow):
         speed = np.array([s.speed for s in path])
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
+        # self.ui.mpl_widget.axes[1][1].cla()
+        axes[1][1].plot(path_time, omega)
+        axes[0][0].plot(path_time,speed)
+        axes[0][0].set_ylim(0,3000)
+        axes[0][0].set(ylabel='speed (mm/s)',title='turn speed (mm/s)')
+        axes[0][1].set(title='wheel speeds (mm/s)')
 
-        self.ui.mpl_widget.canvas.axes.plot(path_time, omega * 2, 'g')
-        self.ui.mpl_widget.canvas.axes.plot(path_time, speed, 'b', linestyle='dotted')
-        self.ui.mpl_widget.canvas.axes.plot(path_time, left_speed, 'b', linestyle='solid')
-        self.ui.mpl_widget.canvas.axes.plot(path_time, right_speed, 'b', linestyle='solid')
+        # self.ui.mpl_widget.axes[1][1].set(xlabel='X Values', ylabel='Y Values',
+        #                                   title='Derivative Function of f')
+        # self.ui.mpl_widget.canvas.axes.plot(path_time, omega * 2, 'g')
+        # self.ui.mpl_widget.canvas.axes.plot(path_time, speed, 'b', linestyle='dotted')
+        axes[0][1].plot(path_time, left_speed, 'b', linestyle='solid')
+        axes[0][1].plot(path_time, right_speed, 'c', linestyle='solid')
 
-        #  this call is VERY slow. everything else takes about 3ms. This takes 30ms!
-        ## consider using pyqtgraph
-        self.ui.mpl_widget.canvas.draw()
+        self.decorate_plot()
+        #  this call is VERY slow, the rest is quick. Consider using pyqtgraph
+        self.ui.mpl_widget.canvas.draw_idle()
 
     def re_calculate(self):
 

@@ -10,8 +10,10 @@ class MplWidget(QWidget):
 
         self.figure = Figure()
         self.canvas = FigureCanvasQTAgg(self.figure)
+        self.rows = 3
+        self.cols = 2
 
-        SMALL_SIZE = 8
+        SMALL_SIZE = 6
         MEDIUM_SIZE = 10
         BIGGER_SIZE = 12
 
@@ -27,8 +29,8 @@ class MplWidget(QWidget):
         vertical_layout.addWidget(self.canvas)
         # vertical_layout.addWidget(NavigationToolbar(self.canvas, self))
 
-        self.canvas.axes = self.canvas.figure.add_subplot()
-
-        self.axes = [self.canvas.axes, self.canvas.axes.twinx()]
+        # self.canvas.axes = self.canvas.figure.add_subplot()
+        # self.axes = [self.canvas.axes, self.canvas.axes.twinx()]
+        self.axes = self.figure.subplots(self.rows,self.cols, sharex='all', sharey='row')
 
         self.setLayout(vertical_layout)
