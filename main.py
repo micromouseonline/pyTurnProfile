@@ -320,12 +320,14 @@ class AppWindow(QMainWindow):
         '''
         self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
         self.ui.mpl_widget.axes[2][0].set_xlim(xmin=0, xmax=0.6, auto=False)
-        self.ui.mpl_widget.axes[2][0].set_xticks([0.3])
-        self.ui.mpl_widget.axes[2][0].grid(visible=True,axis='x',color='#cfc')
-        return
+        # self.ui.mpl_widget.axes[2][0].set_xticks([0.3])
+        self.ui.mpl_widget.axes[2][0].grid(visible=True, axis='x', color='#cfc')
 
+        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
         self.ui.mpl_widget.axes[2][1].set_xlabel('Time (s)')
 
+        self.ui.mpl_widget.figure.tight_layout()
+        return
         self.ui.mpl_widget.axes[0][0].spines['top'].set_visible(False)
 
         self.ui.mpl_widget.axes[1][0].spines['top'].set_visible(False)
@@ -360,13 +362,16 @@ class AppWindow(QMainWindow):
         path_time = [s.time for s in path]
         omega = np.array([s.omega for s in path])
         speed = np.array([s.speed for s in path])
+        alpha = np.array([s.alpha for s in path])
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
         # self.ui.mpl_widget.axes[1][1].cla()
         axes[1][1].plot(path_time, omega)
-        axes[0][0].plot(path_time,speed)
-        axes[0][0].set_ylim(0,3000)
-        axes[0][0].set(ylabel='speed (mm/s)',title='turn speed (mm/s)')
+        axes[1][1].set(title='Omega (deg/s)')
+
+        axes[0][0].plot(path_time, speed)
+        axes[0][0].set_ylim(0, 3000)
+        axes[0][0].set(ylabel='speed (mm/s)', title='turn speed (mm/s)')
         axes[0][1].set(title='wheel speeds (mm/s)')
 
         # self.ui.mpl_widget.axes[1][1].set(xlabel='X Values', ylabel='Y Values',
@@ -375,6 +380,17 @@ class AppWindow(QMainWindow):
         # self.ui.mpl_widget.canvas.axes.plot(path_time, speed, 'b', linestyle='dotted')
         axes[0][1].plot(path_time, left_speed, 'b', linestyle='solid')
         axes[0][1].plot(path_time, right_speed, 'c', linestyle='solid')
+
+        axes[1][0].set(title="centr'l acc (mm/s/s)")
+        axes[1][0].plot(path_time, speed * np.radians(omega), 'g', linestyle='solid')
+
+        axes[2][0].plot(path_time, self.robot.radius * np.radians(alpha), 'g', linestyle='solid')
+        axes[2][0].set(title='Wheel acc. (mm/s/s)')
+
+        axes[2][1].plot(path_time, alpha, 'g', linestyle='solid')
+        axes[2][1].set(title='Angular acc. (deg/s/s)')
+
+        # axes[1][0].plot(path_time, speed*omega, 'g', linestyle='solid')
 
         self.decorate_plot()
         #  this call is VERY slow, the rest is quick. Consider using pyqtgraph

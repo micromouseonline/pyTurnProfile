@@ -45,7 +45,11 @@ class RobotState():
         self.y += -delta * math.sin(math.pi / 2 + math.radians(self.theta))
         self.theta += self.omega * self.m_interval
         self.acceleration = self.speed * math.radians(self.omega)
-        self.alpha = (self.omega - self.m_old_omega) / self.m_interval
+        # this is a nasty hack
+        if abs(self.omega) > 1:
+            self.alpha = (self.omega - self.m_old_omega) / self.m_interval
+        else:
+            self.alpha=0
         self.m_old_omega = self.omega
         # print(f"{self.time} {self.x}  {self.y} ")
 

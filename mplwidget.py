@@ -20,6 +20,7 @@ class MplWidget(QWidget):
         mpl.rc('font', size=SMALL_SIZE)
         mpl.rc('axes', titlesize=SMALL_SIZE)
         mpl.rc('axes', labelsize=SMALL_SIZE)
+        mpl.rc('axes', titlesize=MEDIUM_SIZE)
         mpl.rc('xtick', labelsize=SMALL_SIZE)
         mpl.rc('ytick', labelsize=SMALL_SIZE)
         mpl.rc('legend', fontsize=SMALL_SIZE)
@@ -31,6 +32,5 @@ class MplWidget(QWidget):
 
         # self.canvas.axes = self.canvas.figure.add_subplot()
         # self.axes = [self.canvas.axes, self.canvas.axes.twinx()]
-        self.axes = self.figure.subplots(self.rows,self.cols, sharex='all', sharey='row')
-
+        self.axes = self.figure.subplots(self.rows,self.cols, sharex='all')
         self.setLayout(vertical_layout)

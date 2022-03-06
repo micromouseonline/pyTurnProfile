@@ -226,6 +226,7 @@ class Path(QGraphicsItem):
     def calculate_leadout(self, state : RobotState):
         state.phase = 4
         state.omega = 0
+        state.alpha=0
         target_distance = state.distance + 100.0
         while state.distance < target_distance:
             state.update()
