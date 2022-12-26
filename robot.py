@@ -6,7 +6,6 @@ from PyQt5.QtWidgets import QGraphicsItem
 
 from pose import Pose
 
-
 class Robot(QGraphicsItem):
     def __init__(self):
         super().__init__()

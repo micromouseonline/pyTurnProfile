@@ -1,5 +1,6 @@
 import math
 import os
+import cProfile
 import time
 from background import Background
 from parameters import TurnParameters, default_params
@@ -7,6 +8,7 @@ from pose import Pose
 from robot import Robot
 from path import Path, ProfileType
 from ui_pyturnprofile import Ui_MainWindow
+from time import perf_counter
 
 import random
 import numpy as np
@@ -33,6 +35,8 @@ if hasattr(Qt, "AA_UseHighDpiPixmaps"):
 draw_count = 0
 calc_count = 0
 
+fps = None
+last_time = perf_counter()
 
 # ============================================================================#
 
@@ -333,22 +337,30 @@ class AppWindow(QMainWindow):
         Pretties up the plot. Sets spines, ticks, labels
         :return: nothing
         '''
-        self.ui.mpl_widget.figure.subplots_adjust(left=0.15)
-        self.ui.mpl_widget.figure.subplots_adjust(right=0.85)
-        self.ui.mpl_widget.figure.subplots_adjust(top=0.9)
-        self.ui.mpl_widget.axes[0].set_xlabel('Time (seconds)')
-        self.ui.mpl_widget.axes[0].spines['top'].set_visible(False)
-        self.ui.mpl_widget.axes[1].spines['top'].set_visible(False)
-        self.ui.mpl_widget.axes[1].set_frame_on(True)
-        self.ui.mpl_widget.axes[1].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0].set_frame_on(True)
-        self.ui.mpl_widget.axes[0].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0].set_ylim(0, 4000)
-        self.ui.mpl_widget.axes[0].set_ylabel('speed (mm/s)', color='b')
-        self.ui.mpl_widget.axes[1].set_ylim(0, 2000)
-        self.ui.mpl_widget.axes[1].set_ylabel('Angular Velocity (deg/s)', color='g')
-        self.ui.mpl_widget.axes[0].set_xlim(xmin=0, xmax=0.4, auto=False)
-        self.ui.mpl_widget.canvas.axes.grid('both')
+        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
+        self.ui.mpl_widget.axes[2][0].set_xlim(xmin=0, xmax=0.6, auto=False)
+        # self.ui.mpl_widget.axes[2][0].set_xticks([0.3])
+        self.ui.mpl_widget.axes[2][0].grid(visible=True, axis='x', color='#cfc')
+
+        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
+        self.ui.mpl_widget.axes[2][1].set_xlabel('Time (s)')
+
+        self.ui.mpl_widget.figure.tight_layout()
+        return
+        self.ui.mpl_widget.axes[0][0].set_ylim(0, 4000)
+        self.ui.mpl_widget.axes[0][0].spines['top'].set_visible(False)
+
+        self.ui.mpl_widget.axes[1][0].spines['top'].set_visible(False)
+        self.ui.mpl_widget.axes[1][0].set_frame_on(True)
+        self.ui.mpl_widget.axes[1][0].patch.set_visible(False)
+
+        self.ui.mpl_widget.axes[0][0].set_frame_on(True)
+        self.ui.mpl_widget.axes[0][0].patch.set_visible(False)
+        self.ui.mpl_widget.axes[0][0].set_ylabel('speed (mm/s)', color='b')
+
+        self.ui.mpl_widget.axes[1][0].set_ylim(0, 2000)
+        self.ui.mpl_widget.axes[1][0].set_ylabel('Angular Velocity (deg/s)', color='g')
+        # self.ui.mpl_widget.canvas.axes.grid('both')
 
     def plot_data(self):
         '''
@@ -357,7 +369,12 @@ class AppWindow(QMainWindow):
         If better performance is needed, consider preparing the plot once
         and just updating the data used.
         :return: Nothing
+
+        This is really slow and accounts for most of the time taken and a
+        lot of that is just clearing the axes
         '''
+
+        now = perf_counter()
         axes = self.ui.mpl_widget.axes
         for row in axes:
             for ax in row:
@@ -369,16 +386,16 @@ class AppWindow(QMainWindow):
         path_time = [s.time for s in path]
         omega = np.array([s.omega for s in path])
         speed = np.array([s.speed for s in path])
-        alpha = np.array([s.alpha for s in path])
+        alpha = np.array([s.alpha for s in path]) # could be calculated not stored
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
         # self.ui.mpl_widget.axes[1][1].cla()
 
-        axes[0][0].plot(path_time, 0.001 * speed)
-        axes[0][0].set_ylim(0, 3)
-        axes[0][0].set(ylabel='speed (m/s)', title='turn speed (m/s)')
-        axes[0][1].set(title='wheel speeds (m/s)')
+        # axes[0][0].plot(path_time, 0.001 * speed)
+        # axes[0][0].set_ylim(0, 3)
+        # axes[0][0].set(title='turn speed (m/s)')
 
+        axes[0][1].set(title='wheel speeds (m/s)')
         axes[0][1].plot(path_time, 0.001 * left_speed, 'b', linestyle='solid')
         axes[0][1].plot(path_time, 0.001 * right_speed, 'c', linestyle='solid')
 
@@ -397,13 +414,22 @@ class AppWindow(QMainWindow):
 
         axes[2][1].plot(path_time, 0.001*alpha, 'g', linestyle='solid')
         # axes[2][1].set_ylim(-600, 600)
-        axes[2][1].set(title='Angular acc. (1000 rad/s/s)')
+        axes[2][1].set(title='Ang. acc. (krad/s/s)')
 
         # axes[1][0].plot(path_time, speed*omega, 'g', linestyle='solid')
 
         self.decorate_plot()
         #  this call is VERY slow, the rest is quick. Consider using pyqtgraph
         self.ui.mpl_widget.canvas.draw_idle()
+        elapsed = perf_counter() - now
+        global fps
+        if fps is None:
+            fps = 1.0/elapsed
+        else:
+            f = 1.0/elapsed
+            fps = fps + 0.1 * (f-fps)
+        self.setWindowTitle('%0.2f fps' % fps)
+
 
     def re_calculate(self):
 

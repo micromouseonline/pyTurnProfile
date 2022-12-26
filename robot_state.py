@@ -4,6 +4,9 @@ from pose import Pose
 
 
 class RobotState():
+    '''
+    Describes the instantaneous state of the robot.
+    '''
     def __init__(self, interval=0.001):
         self.time = 0.0
         self.distance = 0.0
