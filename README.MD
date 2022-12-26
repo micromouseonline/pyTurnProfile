@@ -50,7 +50,7 @@ even earlier to compensate for wheel slip.
 
 ## Wheel slip
 
-In this version wheel slip and the effects of slip angle are not modelled. The main reason of bringing this 
+In this version wheel slip and the effects of slip angle are not fully modelled. The main reason of bringing this 
 application up to date and placing it on github is specifically to begin adding in slip angle modelling so if you 
 can help, let me know.
 
@@ -71,6 +71,14 @@ Python virtual environments prevent your global Python installation from becomin
 that can upset the proper operation of other Python applications. You may have your own favourite way of creating 
 virtual environments and may even use Anaconda which is different again. If not, there are many guides available. 
 This one (chosen arbitrarily from Google search) should see you through: https://realpython.com/python-virtual-environments-a-primer/
+
+### UI file
+
+The user interface is designed in a separate file using QtDesigner. This generates the file `pyturnprofile.ui`
+
+Your will need to convert this to the working python version with the command:
+
+` pyuic5 -o ui_pyturnprofile.py pyturnprofile.ui `
 
 
 ## FEEDBACK
