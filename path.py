@@ -102,6 +102,7 @@ class Path(QGraphicsItem):
         arc_angle = params.angle - 2 * transition_angle
         arc_length = params.speed * arc_angle / arc_omega
         turn_distance = 2 * params.delta + arc_length
+        
 
         while state.theta <= end_angle - 0.01:
             if state.theta < params.startAngle + transition_angle:
@@ -113,7 +114,7 @@ class Path(QGraphicsItem):
             else:
                 state.omega = arc_omega * (turn_distance - state.distance) / params.delta
                 state.phase = 3
-            state.update()
+            state.update(params.slip_coefficient)
             self.path_points.append(copy.copy(state))
         self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
@@ -148,7 +149,7 @@ class Path(QGraphicsItem):
                 t = (turn_distance - state.distance) / params.delta
                 state.omega = arc_omega * math.sin(math.pi / 2 * t)
                 state.phase = 3
-            state.update()
+            state.update(params.slip_coefficient)
             self.path_points.append(copy.copy(state))
         self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
@@ -174,7 +175,7 @@ class Path(QGraphicsItem):
             if state.omega < math.radians(1):
                 state.omega = math.radians(1)
             state.phase = 2
-            state.update()
+            state.update(params.slip_coefficient)
             self.path_points.append(copy.copy(state))
         self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
@@ -209,7 +210,7 @@ class Path(QGraphicsItem):
                 t = (turn_distance - state.distance) / params.delta
                 state.omega = arc_omega * t * (2.0 - t)
                 state.phase = 3
-            state.update()
+            state.update(params.slip_coefficient)
             self.path_points.append(copy.copy(state))
         self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
@@ -226,25 +227,25 @@ class Path(QGraphicsItem):
         state.phase = 0
         self.path_points.append(copy.copy(state))
 
-        turn_distance = params.length
+        turn_length = params.length
         turn_gamma = params.gamma
         turn_speed = params.speed
         turn_angle = params.angle
-        k = 6.0 * turn_angle / (turn_distance * turn_distance * turn_distance)
+        k = 6.0 * turn_angle / (turn_length * turn_length * turn_length)
 
-        while state.distance < turn_distance:
-            t = state.distance / turn_distance
+        while state.distance < turn_length:
+            t = state.distance / turn_length
             #  calculate the speed change if used
             q = 4.0 * turn_gamma * (t - 1) * t + turn_gamma + 1
             state.speed = turn_speed * q
             # now the angular velocity
-            omega = state.speed * k * state.distance * (turn_distance - state.distance)
+            omega = state.speed * k * state.distance * (turn_length - state.distance)
             state.omega = omega
             if t < 0.5:
                 state.phase = 1
             else:
                 state.phase = 3
-            state.update()
+            state.update(params.slip_coefficient)
             self.path_points.append(copy.copy(state))
         self.turn_end = len(self.path_points) - 1
         self.calculate_leadout(state)
@@ -269,7 +270,7 @@ class Path(QGraphicsItem):
         elif profile_type == ProfileType.CUBIC:
             self.calculate_cubic(params, startx, starty, loop_interval)
         else:
-            self.calculate_trapezoid(params, startx, starty, loop_interval)
+            self.calculate_trapezoid(params, startx, starty, loop_interval)            
         return
 
     def get_turn_acceleration(self, profile_type: ProfileType, params: TurnParameters):
