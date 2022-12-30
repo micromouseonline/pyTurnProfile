@@ -9,6 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from pgwidget import PGWidget
 
 
 class Ui_MainWindow(object):
@@ -254,7 +255,7 @@ class Ui_MainWindow(object):
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(10, 460, 131, 16))
         self.label.setObjectName("label")
-        self.mpl_widget = MplWidget(self.centralwidget)
+        self.mpl_widget = PGWidget(self.centralwidget)
         self.mpl_widget.setGeometry(QtCore.QRect(10, 30, 401, 401))
         self.mpl_widget.setObjectName("mpl_widget")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -303,4 +304,3 @@ class Ui_MainWindow(object):
         self.rbQuadratic.setText(_translate("MainWindow", "Quadratic"))
         self.rbCubic.setText(_translate("MainWindow", "Cubic Spiral"))
         self.label.setText(_translate("MainWindow", "Turn Summary"))
-from mplwidget import MplWidget

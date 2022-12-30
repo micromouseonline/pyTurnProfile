@@ -682,7 +682,7 @@ p, li { white-space: pre-wrap; }
      <string>Turn Summary</string>
     </property>
    </widget>
-   <widget class="MplWidget" name="mpl_widget" native="true">
+   <widget class="PGWidget" name="mpl_widget" native="true">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -696,9 +696,9 @@ p, li { white-space: pre-wrap; }
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MplWidget</class>
+   <class>PGWidget</class>
    <extends>QWidget</extends>
-   <header>mplwidget.h</header>
+   <header location="global">pgwidget.py</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

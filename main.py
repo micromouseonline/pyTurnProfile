@@ -1,3 +1,4 @@
+from PyQt5.QtCore import QT_VERSION_STR
 import math
 import os
 import cProfile
@@ -13,32 +14,41 @@ from time import perf_counter
 import random
 import numpy as np
 from mplwidget import MplWidget
+from pgwidget import PGWidget
 from PyQt5.QtCore import (Qt, QObject)
 from PyQt5.QtGui import QBrush, QPainter, QIcon, QFont
-from PyQt5.QtWidgets import (QWidget, QApplication, QMainWindow, QGraphicsScene)
+from PyQt5.QtWidgets import (
+    QWidget, QApplication, QMainWindow, QGraphicsScene)
+
+import pyqtgraph as pg
 
 # this may or may not help with high DPI screen
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
-from PyQt5.QtCore import QT_VERSION_STR
 
 version = list(map(int, QT_VERSION_STR.split('.')))
 
 if version[1] >= 14:
-    QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    QApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 if hasattr(Qt, "AA_EnableHighDpiScaling"):
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 if hasattr(Qt, "AA_UseHighDpiPixmaps"):
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
+palette = ("#101418", "#c00000", "#c000c0", "#c06000",
+           "#00c000", "#0072c3", "#6fdc8c", "#d2a106")
+
 draw_count = 0
 calc_count = 0
+
 
 fps = None
 last_time = perf_counter()
 
 # ============================================================================#
+
 
 class AppWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -85,6 +95,7 @@ class AppWindow(QMainWindow):
         self.ui.turnSpeedSpinBox.valueChanged.connect(self.set_speed)
         self.ui.radiusSpinBox.valueChanged.connect(self.set_radius)
         self.ui.accelerationSpinBox.valueChanged.connect(self.set_acceleration)
+        self.ui.slipSpinBox.valueChanged.connect(self.set_slip)
 
         # self.ui.progressSlider.valueChanged.connect(self.re_calculate)
         # # turn type selectors
@@ -207,7 +218,8 @@ class AppWindow(QMainWindow):
         :return: modifies acceleration
         '''
         self.current_params.speed = speed
-        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        acceleration = self.path.get_turn_acceleration(
+            self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.re_calculate()
 
@@ -219,8 +231,9 @@ class AppWindow(QMainWindow):
         :return: modifies acceleration
         '''
         self.current_params.radius = radius
-        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
-        self.set_safely(self.ui.accelerationSpinBox,int(acceleration))
+        acceleration = self.path.get_turn_acceleration(
+            self.current_profile, self.current_params)
+        self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         if self.ui.rbFullSine.isChecked():
             delta = math.pi*math.radians(self.current_params.angle)*radius/4.0
             self.ui.deltaSpinBox.setValue(int(delta))
@@ -235,13 +248,18 @@ class AppWindow(QMainWindow):
         :return: Nothing
         '''
         self.current_params.length = length
-        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
+        acceleration = self.path.get_turn_acceleration(
+            self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.set_safely(self.ui.cubicLengthSpinBox, int(length))
         self.re_calculate()
 
     def set_gamma(self, gamma):
         self.current_params.gamma = gamma / 100.0
+        self.re_calculate()
+
+    def set_slip(self, slip):
+        self.current_params.slip_coefficient = slip / 9800.0
         self.re_calculate()
 
     def set_acceleration(self, acceleration):
@@ -255,8 +273,9 @@ class AppWindow(QMainWindow):
     def set_delta(self, delta):
         self.current_params.delta = delta
         if self.ui.rbFullSine.isChecked():
-            radius = int(delta*4.0/(math.pi*math.radians(self.current_params.angle)))
-            self.set_safely(self.ui.radiusSpinBox,radius)
+            radius = int(
+                delta*4.0/(math.pi*math.radians(self.current_params.angle)))
+            self.set_safely(self.ui.radiusSpinBox, radius)
         self.re_calculate()
 
     def set_offset(self, offset):
@@ -264,8 +283,10 @@ class AppWindow(QMainWindow):
         pivot_x = self.current_params.pivot_x
         pivot_y = self.current_params.pivot_y
         start_angle = self.current_params.startAngle
-        start_x = pivot_x + offset * math.cos(math.pi / 2 + math.radians(start_angle))
-        start_y = pivot_y + offset * math.sin(math.pi / 2 + math.radians(start_angle))
+        start_x = pivot_x + offset * \
+            math.cos(math.pi / 2 + math.radians(start_angle))
+        start_y = pivot_y + offset * \
+            math.sin(math.pi / 2 + math.radians(start_angle))
         self.robot.set_pose(Pose(start_x, start_y, start_angle))
 
         self.set_safely(self.ui.startYSpinBox, int(start_y))
@@ -288,6 +309,7 @@ class AppWindow(QMainWindow):
         self.set_safely(self.ui.deltaSpinBox, int(params.delta))
         self.set_safely(self.ui.cubicLengthSpinBox, int(params.length))
         self.set_safely(self.ui.gammaSpinBox, int(params.gamma))
+        self.set_safely(self.ui.slipSpinBox, int(params.slip_coefficient))
 
         self.set_offset(params.offset)
         self.set_speed(speed_now)
@@ -318,49 +340,31 @@ class AppWindow(QMainWindow):
         wheel_acc = self.robot.radius * math.radians(max_alpha)
         exit_state = self.path.get_state_at(self.path.turn_end - 1)
         self.ui.textEdit.clear()
-        self.ui.textEdit.append(f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
-        self.ui.textEdit.append(f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
-        self.ui.textEdit.append(f"Cent'l Accel'n: {self.path.get_max_acceleration():5.0f} mm/s/s")
+        self.ui.textEdit.append(
+            f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
+        self.ui.textEdit.append(
+            f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
+        self.ui.textEdit.append(
+            f"Cent'l Accel'n: {self.path.get_max_acceleration():5.0f} mm/s/s")
         self.ui.textEdit.append(f" Wheel Accel'n: {wheel_acc:5.0f} mm/s/s")
         self.ui.textEdit.append(f"     Max alpha: {max_alpha:5.0f} deg/s/s")
-        self.ui.textEdit.append(f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
+        self.ui.textEdit.append(
+            f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
         self.ui.textEdit.append(f"        Exit X: {exit_state.x:5.1f} mm")
         self.ui.textEdit.append(f"        Exit Y: {exit_state.y:5.1f} mm")
-        self.ui.textEdit.append(f"    Exit Speed: {exit_state.speed:5.0f} mm/s")
+        self.ui.textEdit.append(
+            f"    Exit Speed: {exit_state.speed:5.0f} mm/s")
         self.ui.textEdit.append(f"    Exit Angle: {exit_state.theta:5.1f} deg")
-        self.ui.textEdit.append(f"      Distance: {exit_state.distance:5.0f} mm")
+        self.ui.textEdit.append(
+            f"      Distance: {exit_state.distance:5.0f} mm")
         self.ui.textEdit.append(f"          Time: {exit_state.time:5.3f} sec")
+        self.ui.textEdit.append(
+            f"          Slip: {self.current_params.slip_coefficient:.5f} deg/g")
         self.ui.textEdit.append("")
 
-    def decorate_plot(self):
-        '''
-        Pretties up the plot. Sets spines, ticks, labels
-        :return: nothing
-        '''
-        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
-        self.ui.mpl_widget.axes[2][0].set_xlim(xmin=0, xmax=0.6, auto=False)
-        # self.ui.mpl_widget.axes[2][0].set_xticks([0.3])
-        self.ui.mpl_widget.axes[2][0].grid(visible=True, axis='x', color='#cfc')
-
-        self.ui.mpl_widget.axes[2][0].set_xlabel('Time (s)')
-        self.ui.mpl_widget.axes[2][1].set_xlabel('Time (s)')
-
-        self.ui.mpl_widget.figure.tight_layout()
-        return
-        self.ui.mpl_widget.axes[0][0].set_ylim(0, 4000)
-        self.ui.mpl_widget.axes[0][0].spines['top'].set_visible(False)
-
-        self.ui.mpl_widget.axes[1][0].spines['top'].set_visible(False)
-        self.ui.mpl_widget.axes[1][0].set_frame_on(True)
-        self.ui.mpl_widget.axes[1][0].patch.set_visible(False)
-
-        self.ui.mpl_widget.axes[0][0].set_frame_on(True)
-        self.ui.mpl_widget.axes[0][0].patch.set_visible(False)
-        self.ui.mpl_widget.axes[0][0].set_ylabel('speed (mm/s)', color='b')
-
-        self.ui.mpl_widget.axes[1][0].set_ylim(0, 2000)
-        self.ui.mpl_widget.axes[1][0].set_ylabel('Angular Velocity (deg/s)', color='g')
-        # self.ui.mpl_widget.canvas.axes.grid('both')
+    def plot(self, x, y, plot_item, plotname, color, line_style=Qt.SolidLine):
+        pen = pg.mkPen(color=color, width=3, style=line_style)
+        plot_item.plot(x, y, name=plotname, pen=pen)
 
     def plot_data(self):
         '''
@@ -373,54 +377,31 @@ class AppWindow(QMainWindow):
         This is really slow and accounts for most of the time taken and a
         lot of that is just clearing the axes
         '''
-
         now = perf_counter()
         axes = self.ui.mpl_widget.axes
-        for row in axes:
-            for ax in row:
-                ax.cla()
-                ax.grid('on')
+        title_style = {'color': 'cyan', 'size': '12px'}
 
         # use the entire path including the leadout
         path = self.path.path_points[:-1]
         path_time = [s.time for s in path]
+        end_time = path_time[-1]
         omega = np.array([s.omega for s in path])
         speed = np.array([s.speed for s in path])
-        alpha = np.array([s.alpha for s in path]) # could be calculated not stored
+        alpha = np.array([s.alpha for s in path])   # could be calculated not stored
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
-        # self.ui.mpl_widget.axes[1][1].cla()
 
-        # axes[0][0].plot(path_time, 0.001 * speed)
-        # axes[0][0].set_ylim(0, 3)
-        # axes[0][0].set(title='turn speed (m/s)')
+        # Note that it is more efficient to just update the data
+        # rather than re-create all the plots
+        for p in axes:
+            p.clear()
 
-        axes[0][1].set(title='wheel speeds (m/s)')
-        axes[0][1].plot(path_time, 0.001 * left_speed, 'b', linestyle='solid')
-        axes[0][1].plot(path_time, 0.001 * right_speed, 'c', linestyle='solid')
+        self.plot(path_time, 0.001*left_speed, axes[0], "L", palette[3])
+        self.plot(path_time, 0.001*right_speed, axes[0], "R", palette[4])
+        self.plot(path_time, 0.001*speed*np.radians(omega), axes[1], "R", palette[2])
+        self.plot(path_time, omega, axes[2], '', palette[5])
+        self.plot(path_time, 0.001*alpha, axes[3], 'q', palette[6])
 
-        axes[1][0].set(title="centr'l acc (m/s/s)")
-        axes[1][0].plot(path_time, 0.001 * speed * np.radians(omega), 'g', linestyle='solid')
-        axes[1][0].set_ylim(0, 70)
-        axes[1][0].set_yticks([0, 15, 30, 45, 60])
-
-        axes[1][1].set(title='Omega (deg/s)')
-        # axes[1][0].set_ylim(0, 1200)
-        axes[1][1].plot(path_time, np.radians(omega))
-
-        axes[2][0].set(title='Wheel acc. (m/s/s)')
-        axes[2][0].plot(path_time, 0.001 * self.robot.radius * np.radians(alpha), 'g', linestyle='solid')
-        axes[2][0].set_ylim(-25, 25)
-
-        axes[2][1].plot(path_time, 0.001*alpha, 'g', linestyle='solid')
-        # axes[2][1].set_ylim(-600, 600)
-        axes[2][1].set(title='Ang. acc. (krad/s/s)')
-
-        # axes[1][0].plot(path_time, speed*omega, 'g', linestyle='solid')
-
-        self.decorate_plot()
-        #  this call is VERY slow, the rest is quick. Consider using pyqtgraph
-        self.ui.mpl_widget.canvas.draw_idle()
         elapsed = perf_counter() - now
         global fps
         if fps is None:
@@ -430,14 +411,14 @@ class AppWindow(QMainWindow):
             fps = fps + 0.1 * (f-fps)
         self.setWindowTitle('%0.2f fps' % fps)
 
-
     def re_calculate(self):
 
         start_x = self.ui.startXSpinBox.value()
         start_y = self.ui.startYSpinBox.value()
 
         # recalculate the path
-        self.path.calculate(self.current_profile, self.current_params, start_x, start_y, self.loop_interval)
+        self.path.calculate(
+            self.current_profile, self.current_params, start_x, start_y, self.loop_interval)
         self.ui.progressSlider.setMinimum(0)
         self.ui.progressSlider.setMaximum(self.path.turn_end)
         i = self.ui.progressSlider.value()
