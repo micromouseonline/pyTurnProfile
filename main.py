@@ -13,7 +13,6 @@ from time import perf_counter
 
 import random
 import numpy as np
-from mplwidget import MplWidget
 from pgwidget import PGWidget
 from PyQt5.QtCore import (Qt, QObject)
 from PyQt5.QtGui import QBrush, QPainter, QIcon, QFont
