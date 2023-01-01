@@ -102,7 +102,6 @@ class Path(QGraphicsItem):
         arc_angle = params.angle - 2 * transition_angle
         arc_length = params.speed * arc_angle / arc_omega
         turn_distance = 2 * params.delta + arc_length
-        
 
         while state.theta <= end_angle - 0.01:
             if state.theta < params.startAngle + transition_angle:

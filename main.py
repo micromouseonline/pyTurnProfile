@@ -24,7 +24,6 @@ import pyqtgraph as pg
 # this may or may not help with high DPI screen
 os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
 
-
 version = list(map(int, QT_VERSION_STR.split('.')))
 
 if version[1] >= 14:
@@ -42,9 +41,9 @@ palette = ("#101418", "#c00000", "#c000c0", "#c06000",
 draw_count = 0
 calc_count = 0
 
-
 fps = None
 last_time = perf_counter()
+
 
 # ============================================================================#
 
@@ -234,7 +233,7 @@ class AppWindow(QMainWindow):
             self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         if self.ui.rbFullSine.isChecked():
-            delta = math.pi*math.radians(self.current_params.angle)*radius/4.0
+            delta = math.pi * math.radians(self.current_params.angle) * radius / 4.0
             self.ui.deltaSpinBox.setValue(int(delta))
             # self.set(self.ui.deltaSpinBox,int(delta))
         self.re_calculate()
@@ -273,7 +272,7 @@ class AppWindow(QMainWindow):
         self.current_params.delta = delta
         if self.ui.rbFullSine.isChecked():
             radius = int(
-                delta*4.0/(math.pi*math.radians(self.current_params.angle)))
+                delta * 4.0 / (math.pi * math.radians(self.current_params.angle)))
             self.set_safely(self.ui.radiusSpinBox, radius)
         self.re_calculate()
 
@@ -283,9 +282,9 @@ class AppWindow(QMainWindow):
         pivot_y = self.current_params.pivot_y
         start_angle = self.current_params.startAngle
         start_x = pivot_x + offset * \
-            math.cos(math.pi / 2 + math.radians(start_angle))
+                  math.cos(math.pi / 2 + math.radians(start_angle))
         start_y = pivot_y + offset * \
-            math.sin(math.pi / 2 + math.radians(start_angle))
+                  math.sin(math.pi / 2 + math.radians(start_angle))
         self.robot.set_pose(Pose(start_x, start_y, start_angle))
 
         self.set_safely(self.ui.startYSpinBox, int(start_y))
@@ -386,7 +385,7 @@ class AppWindow(QMainWindow):
         end_time = path_time[-1]
         omega = np.array([s.omega for s in path])
         speed = np.array([s.speed for s in path])
-        alpha = np.array([s.alpha for s in path])   # could be calculated not stored
+        alpha = np.array([s.alpha for s in path])  # could be calculated not stored
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
 
@@ -395,19 +394,19 @@ class AppWindow(QMainWindow):
         for p in axes:
             p.clear()
 
-        self.plot(path_time, 0.001*left_speed, axes[0], "L", palette[3])
-        self.plot(path_time, 0.001*right_speed, axes[0], "R", palette[4])
-        self.plot(path_time, 0.001*speed*np.radians(omega), axes[1], "R", palette[2])
+        self.plot(path_time, 0.001 * left_speed, axes[0], "L", palette[3])
+        self.plot(path_time, 0.001 * right_speed, axes[0], "R", palette[4])
+        self.plot(path_time, 0.001 * speed * np.radians(omega), axes[1], "R", palette[2])
         self.plot(path_time, omega, axes[2], '', palette[5])
-        self.plot(path_time, 0.001*alpha, axes[3], 'q', palette[6])
+        self.plot(path_time, 0.001 * alpha, axes[3], 'q', palette[6])
 
         elapsed = perf_counter() - now
         global fps
         if fps is None:
-            fps = 1.0/elapsed
+            fps = 1.0 / elapsed
         else:
-            f = 1.0/elapsed
-            fps = fps + 0.1 * (f-fps)
+            f = 1.0 / elapsed
+            fps = fps + 0.1 * (f - fps)
         self.setWindowTitle('%0.2f fps' % fps)
 
     def re_calculate(self):
@@ -416,8 +415,7 @@ class AppWindow(QMainWindow):
         start_y = self.ui.startYSpinBox.value()
 
         # recalculate the path
-        self.path.calculate(
-            self.current_profile, self.current_params, start_x, start_y, self.loop_interval)
+        self.path.calculate(self.current_profile, self.current_params, start_x, start_y, self.loop_interval)
         self.ui.progressSlider.setMinimum(0)
         self.ui.progressSlider.setMaximum(self.path.turn_end)
         i = self.ui.progressSlider.value()
