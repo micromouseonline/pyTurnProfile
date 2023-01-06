@@ -70,6 +70,8 @@ class AppWindow(QMainWindow):
         # fix up the font in the textEdit box
         font = QFont()
         font.setFamily("Monospace")
+        font.setFamily("none")
+        font.setPointSizeF(10.0)
         font.setStyleHint(QFont.TypeWriter)
         self.ui.lblPathView.setFont(font)
         self.ui.textEdit.setFont(font)
