@@ -126,12 +126,3 @@ the performance metrics can be calculated from the curvature equations
    turnAcceleration = turnSpeed * turnSpeed * 6 * RADIANS(turnAngle) / 4 / length;
    turnAlpha = turnSpeed * k * length;
    ```
-
-This version has a parameter, gamma, that allows the mouse to
-enter the turn more quickly - braking into and accelerating
-out of the turn. the calculation retains the peak centripetal
-acceleration at the given value. While the technique has promise,
-it relies on the inner wheel being able to brake much harder
-than the standard turn.
-
-Setting gamma at zero maintains a constant speed throughout.

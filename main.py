@@ -89,7 +89,6 @@ class AppWindow(QMainWindow):
         # connect everything up
         self.ui.deltaSpinBox.valueChanged.connect(self.set_delta)
         self.ui.cubicLengthSpinBox.valueChanged.connect(self.set_length)
-        self.ui.gammaSpinBox.valueChanged.connect(self.set_gamma)
         self.ui.offsetSpinBox.valueChanged.connect(self.set_offset)
 
         self.ui.turnSpeedSpinBox.valueChanged.connect(self.set_speed)
@@ -175,31 +174,26 @@ class AppWindow(QMainWindow):
             self.ui.deltaSpinBox.setEnabled(True)
             self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
-            self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbSinusoid.isChecked():
             self.current_profile = ProfileType.SINUSOID
             self.ui.deltaSpinBox.setEnabled(True)
             self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
-            self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbFullSine.isChecked():
             self.current_profile = ProfileType.FULL_SINUSOID
             self.ui.deltaSpinBox.setEnabled(False)
             self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
-            self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbQuadratic.isChecked():
             self.current_profile = ProfileType.QUADRATIC
             self.ui.deltaSpinBox.setEnabled(True)
             self.ui.radiusSpinBox.setEnabled(True)
             self.ui.cubicLengthSpinBox.setEnabled(False)
-            self.ui.gammaSpinBox.setEnabled(False)
         elif self.ui.rbCubic.isChecked():
             self.current_profile = ProfileType.CUBIC
             self.ui.deltaSpinBox.setEnabled(False)
             self.ui.radiusSpinBox.setEnabled(False)
             self.ui.cubicLengthSpinBox.setEnabled(True)
-            self.ui.gammaSpinBox.setEnabled(True)
         if self.current_profile == old_profile:
             return
 
@@ -249,10 +243,6 @@ class AppWindow(QMainWindow):
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.set_safely(self.ui.cubicLengthSpinBox, int(length))
-        self.re_calculate()
-
-    def set_gamma(self, gamma):
-        self.current_params.gamma = gamma / 100.0
         self.re_calculate()
 
     def set_slip(self, slip):
@@ -305,7 +295,6 @@ class AppWindow(QMainWindow):
         self.set_safely(self.ui.radiusSpinBox, int(params.arc_radius))
         self.set_safely(self.ui.deltaSpinBox, int(params.delta))
         self.set_safely(self.ui.cubicLengthSpinBox, int(params.cubic_length))
-        self.set_safely(self.ui.gammaSpinBox, int(params.gamma))
         self.set_safely(self.ui.slipSpinBox, int(params.slip_coefficient))
 
         self.set_offset(params.offset)
