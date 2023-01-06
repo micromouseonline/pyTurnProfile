@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Friday, 6th January 2023 2:05:59 pm
+# Last Modified: Friday, 6th January 2023 2:07:49 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -34,7 +34,7 @@
 # SOFTWARE.
 ###
 # from profile import  TurnProfile,  Trapezoid
-from profile import *
+from profilers import *
 from pose import Pose
 from parameters import TurnParameters, default_params
 import numpy as np
