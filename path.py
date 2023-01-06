@@ -95,15 +95,15 @@ class Path(QGraphicsItem):
         state.set_interval(loop_interval)
         state.x = startx
         state.y = starty
-        state.speed = params.speed
+        state.speed = params.max_speed
         state.theta = params.startAngle
         self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.speed / params.arc_radius)
-        transition_angle = params.delta * arc_omega / (2.0 * params.speed)
+        arc_omega = math.degrees(params.max_speed / params.arc_radius)
+        transition_angle = params.delta * arc_omega / (2.0 * params.max_speed)
         arc_angle = params.angle - 2 * transition_angle
-        arc_length = params.speed * arc_angle / arc_omega
+        arc_length = params.max_speed * arc_angle / arc_omega
         turn_distance = 2 * params.delta + arc_length
 
         while state.theta <= end_angle - 0.01:
@@ -128,15 +128,15 @@ class Path(QGraphicsItem):
         state.set_interval(loop_interval)
         state.x = startx
         state.y = starty
-        state.speed = params.speed
+        state.speed = params.max_speed
         state.theta = params.startAngle
         self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.speed / params.arc_radius)
-        transition_angle = params.delta * 2 * arc_omega / (math.pi * params.speed)
+        arc_omega = math.degrees(params.max_speed / params.arc_radius)
+        transition_angle = params.delta * 2 * arc_omega / (math.pi * params.max_speed)
         arc_angle = params.angle - 2 * transition_angle
-        arc_length = params.speed * arc_angle / arc_omega
+        arc_length = params.max_speed * arc_angle / arc_omega
         turn_distance = 2 * params.delta + arc_length
 
         while state.theta <= end_angle - 0.01:
@@ -163,12 +163,12 @@ class Path(QGraphicsItem):
         state.set_interval(loop_interval)
         state.x = startx
         state.y = starty
-        state.speed = params.speed
+        state.speed = params.max_speed
         state.theta = params.startAngle
         self.path_points.append(copy.copy(state))
         end_angle = params.startAngle + params.angle
         radius = 4.0*params.delta/(math.pi*math.radians(params.angle))
-        arc_omega = math.degrees(params.speed / radius)
+        arc_omega = math.degrees(params.max_speed / radius)
         turn_distance = 2 * params.delta
         # while state.distance < turn_distance:
         while abs(state.theta - end_angle) > 0.01:
@@ -189,15 +189,15 @@ class Path(QGraphicsItem):
         state.set_interval(loop_interval)
         state.x = startx
         state.y = starty
-        state.speed = params.speed
+        state.speed = params.max_speed
         state.theta = params.startAngle
         self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.speed / params.arc_radius)
-        transition_angle = params.delta * 2 * arc_omega / (3.0 * params.speed)
+        arc_omega = math.degrees(params.max_speed / params.arc_radius)
+        transition_angle = params.delta * 2 * arc_omega / (3.0 * params.max_speed)
         arc_angle = params.angle - 2 * transition_angle
-        arc_length = params.speed * arc_angle / arc_omega
+        arc_length = params.max_speed * arc_angle / arc_omega
         turn_distance = 2 * params.delta + arc_length
 
         while state.theta <= end_angle - 0.01:
@@ -224,13 +224,13 @@ class Path(QGraphicsItem):
         state.set_interval(loop_interval)
         state.x = startx
         state.y = starty
-        state.speed = params.speed
+        state.speed = params.max_speed
         state.theta = params.startAngle
         state.phase = 0
         self.path_points.append(copy.copy(state))
 
         turn_length = params.cubic_length
-        turn_speed = params.speed
+        turn_speed = params.max_speed
         turn_angle = params.angle
         k = 6.0 * turn_angle / (turn_length * turn_length * turn_length)
 
@@ -274,12 +274,12 @@ class Path(QGraphicsItem):
     def get_turn_acceleration(self, profile_type: ProfileType, params: TurnParameters):
         acc = 0
         if profile_type == ProfileType.TRAPEZOID:
-            acc = params.speed * params.speed / params.arc_radius
+            acc = params.max_speed * params.max_speed / params.arc_radius
         elif profile_type == ProfileType.QUADRATIC:
-            acc = params.speed * params.speed / params.arc_radius
+            acc = params.max_speed * params.max_speed / params.arc_radius
         elif profile_type == ProfileType.SINUSOID:
-            acc = params.speed * params.speed / params.arc_radius
+            acc = params.max_speed * params.max_speed / params.arc_radius
         elif profile_type == ProfileType.CUBIC:
-            acc = 6 * params.speed * params.speed * math.radians(params.angle) / 4 / params.cubic_length
+            acc = 6 * params.max_speed * params.max_speed * math.radians(params.angle) / 4 / params.cubic_length
 
         return acc

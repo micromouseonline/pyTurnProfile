@@ -198,7 +198,7 @@ class AppWindow(QMainWindow):
             return
 
         # force recalculation of the spinners
-        self.set_speed(self.current_params.speed)
+        self.set_speed(self.current_params.max_speed)
         self.set_radius(self.current_params.arc_radius)
         self.ui.progressSlider.setValue(0)
         self.re_calculate()
@@ -211,7 +211,7 @@ class AppWindow(QMainWindow):
         :param speed: The speed throughout the turn
         :return: modifies acceleration
         '''
-        self.current_params.speed = speed
+        self.current_params.max_speed = speed
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.re_calculate()
@@ -252,7 +252,7 @@ class AppWindow(QMainWindow):
         self.current_params.acceleration = acceleration
         radius = self.ui.radiusSpinBox.value()
         speed = math.sqrt(acceleration * radius)
-        self.current_params.speed = speed
+        self.current_params.max_speed = speed
         self.set_safely(self.ui.turnSpeedSpinBox, int(speed))
         self.re_calculate()
 

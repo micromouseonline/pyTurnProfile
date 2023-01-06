@@ -3,8 +3,7 @@ import numpy as np
 
 class TurnProfile:
     def __init__(self, params = None):
-        self.profile_length = 0
-        self.speed = 1000
+        self.length = 0
         self.params = params
         pass
 
@@ -12,7 +11,7 @@ class TurnProfile:
         self.params = params
         pass
 
-    def get_omega(self,p): # 0 <= p <= 1.0 
+    def get_omega(self,p,speed): # 0 <= p <= 1.0 
         if self.params is None:
             return 0.0
         x = max(0.0,p)
@@ -24,14 +23,12 @@ class Cubic(TurnProfile):
     def __init__(self):
         super().__init__()
 
-    def setup(self, params : TurnParameters, speed):
+    def setup(self, params : TurnParameters):
         self.params = params
-        self.speed = speed
-        self.length = self.params.cubic_length
-        self.k = 6.0*self.params.angle/ self.params.cubic_length
+        self.k = 6.0*self.params.angle/ self.params.length
 
-    def get_omega(self,p):
-        omega = self.speed * self.k * p * (1-p)
+    def get_omega(self,p,speed):
+        omega = speed * self.k * p * (1-p)
         phase = 1
         if p > 0.5:
             phase = 3
@@ -41,16 +38,15 @@ class Trapezoid(TurnProfile):
     def __init__(self):
         super().__init__()
 
-    def setup(self, params : TurnParameters, speed):
+    def setup(self, params : TurnParameters):
         self.params = params
-        self.speed = speed
-        self.arc_omega = np.degrees(self.speed / params.arc_radius)
-        self.transition_angle = params.delta * self.arc_omega / (2.0 * self.speed)
+        self.arc_omega = np.degrees(params.max_speed / params.arc_radius)
+        self.transition_angle = params.delta * self.arc_omega / (2.0 * params.max_speed)
         self.arc_angle = params.angle - 2 * self.transition_angle
-        self.arc_length = self.speed * self.arc_angle / self.arc_omega
+        self.arc_length = params.max_speed * self.arc_angle / self.arc_omega
         self.length = 2 * params.delta + self.arc_length
 
-    def get_omega(self,p):
+    def get_omega(self,p,speed):
         phase = 1
         distance = p*self.length
         if distance < self.params.delta:
@@ -62,23 +58,22 @@ class Trapezoid(TurnProfile):
             distance = distance - self.params.delta - self.arc_length
             omega = self.arc_omega * (1.0 - distance/self.params.delta)
             phase = 3
-        
+        (omega)
         return (omega,phase)
 
 class Quadratic(TurnProfile):
     def __init__(self):
         super().__init__()
 
-    def setup(self, params : TurnParameters, speed):
+    def setup(self, params : TurnParameters):
         self.params = params
-        self.speed = speed
-        self.arc_omega = np.degrees(self.speed / params.arc_radius)
-        self.transition_angle = params.delta * 2 * self.arc_omega / (3.0 * self.speed)
+        self.arc_omega = np.degrees(params.max_speed / params.radius)
+        self.transition_angle = params.delta * self.arc_omega / (3.0 * params.max_speed)
         self.arc_angle = params.angle - 2 * self.transition_angle
-        self.arc_length = self.speed * self.arc_angle / self.arc_omega
+        self.arc_length = params.max_speed * self.arc_angle / self.arc_omega
         self.length = 2 * params.delta + self.arc_length
 
-    def get_omega(self,p):
+    def get_omega(self,p,speed):
         phase = 1
         distance = p*self.length
         if distance < self.params.delta:
@@ -97,24 +92,21 @@ class Sinusoid(TurnProfile):
     def __init__(self):
         super().__init__()
 
-    def setup(self, params : TurnParameters, speed):
+    def setup(self, params : TurnParameters):
         self.params = params
-        self.speed = speed
-        
-        self.arc_omega = np.degrees(self.speed / params.arc_radius)
-        self.transition_angle = params.delta * 2 * self.arc_omega / (np.pi * self.speed)
+        self.arc_omega = np.degrees(params.max_speed / params.radius)
+        self.transition_angle = params.delta * self.arc_omega / (np.pi * params.max_speed)
         self.arc_angle = params.angle - 2 * self.transition_angle
-        self.arc_length = self.speed * self.arc_angle / self.arc_omega
+        self.arc_length = params.max_speed * self.arc_angle / self.arc_omega
         self.length = 2 * params.delta + self.arc_length
-        print(self.arc_length)
 
-    def get_omega(self,p):
+    def get_omega(self,p,speed):
         phase = 1
         distance = p*self.length
         if distance < self.params.delta:
             q = distance / self.params.delta
             omega = self.arc_omega * np.sin(q * np.pi/2) 
-        elif distance < (self.params.delta + self.arc_length):
+        elif distance < self.params.delta + self.arc_length:
             omega = self.arc_omega
             phase = 2
         else:
@@ -128,15 +120,14 @@ class FullSinusoid(TurnProfile):
     def __init__(self):
         super().__init__()
 
-    def setup(self, params : TurnParameters, speed):
+    def setup(self, params : TurnParameters):
         self.params = params
-        self.speed = speed
         radius = 4.0*params.delta/(np.pi*np.radians(params.angle))
-        self.arc_omega = np.degrees(self.speed / radius)
+        self.arc_omega = np.degrees(params.max_speed / radius)
         self.length = 2 * params.delta
         
 
-    def get_omega(self,p):
+    def get_omega(self,p,speed):
         distance = p * self.length
         omega = self.arc_omega * np.sin(np.pi * p)
         phase = 1

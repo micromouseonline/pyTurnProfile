@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Friday, 6th January 2023 2:07:49 pm
+# Last Modified: Friday, 6th January 2023 7:03:13 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -82,7 +82,7 @@ class Trajectory:
         if self.speed < 1:
             return
         self.end_time = self.profiler.length/self.speed
-        self.n_items = int(self.end_time/self.delta_t)
+        self.n_items = 1+int(0.5+self.end_time/self.delta_t)
         self.theta_ideal = np.zeros(self.n_items)
         self.omega_ideal = np.zeros(self.n_items)
         self.x_ideal = np.zeros(self.n_items)
@@ -95,6 +95,7 @@ class Trajectory:
         
     def set_profiler(self,profiler):
         self.profiler = profiler
+        self.reset_data()
         
     def set_speed(self, speed):
         self.speed = speed
@@ -116,24 +117,32 @@ class Trajectory:
         self.reset_data()        
         print(f"{self.end_time:.3f} {self.n_items}")
         self.time = np.linspace(0,self.end_time,self.n_items)
+        self.theta_ideal[0] = self.start_angle
         print("calculating...")
         for i,t in enumerate(self.time):
             p = t/self.end_time
-            omega,phase = self.profiler.get_omega(p,self.speed)
-            print(f"{t:.4f}  {omega:.4f}")
-
-    
-
+            omega,phase = self.profiler.get_omega(p)
+            self.omega_ideal[i] = omega
+        # nast hack for rounding errors
 
 
+        # now we have the angular velocity as a function of time
+        print(self.delta_t)
+        self.theta_ideal = np.cumsum(self.omega_ideal * self.delta_t) + self.start_angle
+        self.theta_ideal[-1] = self.profiler.params.angle
+        
+        for i,t in enumerate(self.time):
+            # if i > 0:
+            #     self.theta_ideal[i] = self.theta_ideal[i-1] + self.omega_ideal[i-1] * self.delta_t
+            print(f"{t:.4f}  {self.omega_ideal[i]:.4f}  {self.theta_ideal[i]:.4f}")
 
 
 
 if __name__ == "__main__":
     trajectory = Trajectory()
-    profile = Trapezoid()
+    profile = Cubic()
     trajectory.set_profiler(profile)
-    profile.setup(default_params["SS90F"])
+    profile.setup(default_params["SS90F"], 1000)
 
     trajectory.set_start_xy(0,0)   
     trajectory.set_start_angle(0)   
