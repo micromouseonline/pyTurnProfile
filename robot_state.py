@@ -40,7 +40,7 @@ class RobotState():
     def set_interval(self, interval):
         self.m_interval = interval
 
-    def update(self,slip_coefficient = 0):
+    def update(self):
         delta = self.speed * self.m_interval
         self.time += self.m_interval
         self.distance += delta

@@ -246,7 +246,6 @@ class AppWindow(QMainWindow):
         self.re_calculate()
 
     def set_slip(self, slip):
-        self.current_params.slip_coefficient = slip / 9800.0
         self.re_calculate()
 
     def set_acceleration(self, acceleration):
@@ -295,7 +294,6 @@ class AppWindow(QMainWindow):
         self.set_safely(self.ui.radiusSpinBox, int(params.arc_radius))
         self.set_safely(self.ui.deltaSpinBox, int(params.delta))
         self.set_safely(self.ui.cubicLengthSpinBox, int(params.cubic_length))
-        self.set_safely(self.ui.slipSpinBox, int(params.slip_coefficient))
 
         self.set_offset(params.offset)
         self.set_speed(speed_now)
@@ -344,8 +342,6 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append(
             f"      Distance: {exit_state.distance:5.0f} mm")
         self.ui.textEdit.append(f"          Time: {exit_state.time:5.3f} sec")
-        self.ui.textEdit.append(
-            f"          Slip: {self.current_params.slip_coefficient:.5f} deg/g")
         self.ui.textEdit.append("")
 
     def plot(self, x, y, plot_item, plotname, color, line_style=Qt.SolidLine):
