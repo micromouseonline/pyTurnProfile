@@ -97,7 +97,7 @@ class Path(QGraphicsItem):
         self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.speed / params.radius)
+        arc_omega = math.degrees(params.speed / params.arc_radius)
         transition_angle = params.delta * arc_omega / (2.0 * params.speed)
         arc_angle = params.angle - 2 * transition_angle
         arc_length = params.speed * arc_angle / arc_omega
@@ -130,7 +130,7 @@ class Path(QGraphicsItem):
         self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.speed / params.radius)
+        arc_omega = math.degrees(params.speed / params.arc_radius)
         transition_angle = params.delta * 2 * arc_omega / (math.pi * params.speed)
         arc_angle = params.angle - 2 * transition_angle
         arc_length = params.speed * arc_angle / arc_omega
@@ -191,7 +191,7 @@ class Path(QGraphicsItem):
         self.path_points.append(copy.copy(state))
 
         end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.speed / params.radius)
+        arc_omega = math.degrees(params.speed / params.arc_radius)
         transition_angle = params.delta * 2 * arc_omega / (3.0 * params.speed)
         arc_angle = params.angle - 2 * transition_angle
         arc_length = params.speed * arc_angle / arc_omega
@@ -226,7 +226,7 @@ class Path(QGraphicsItem):
         state.phase = 0
         self.path_points.append(copy.copy(state))
 
-        turn_length = params.length
+        turn_length = params.cubic_length
         turn_gamma = params.gamma
         turn_speed = params.speed
         turn_angle = params.angle
@@ -275,12 +275,12 @@ class Path(QGraphicsItem):
     def get_turn_acceleration(self, profile_type: ProfileType, params: TurnParameters):
         acc = 0
         if profile_type == ProfileType.TRAPEZOID:
-            acc = params.speed * params.speed / params.radius
+            acc = params.speed * params.speed / params.arc_radius
         elif profile_type == ProfileType.QUADRATIC:
-            acc = params.speed * params.speed / params.radius
+            acc = params.speed * params.speed / params.arc_radius
         elif profile_type == ProfileType.SINUSOID:
-            acc = params.speed * params.speed / params.radius
+            acc = params.speed * params.speed / params.arc_radius
         elif profile_type == ProfileType.CUBIC:
-            acc = 6 * params.speed * params.speed * math.radians(params.angle) / 4 / params.length
+            acc = 6 * params.speed * params.speed * math.radians(params.angle) / 4 / params.cubic_length
 
         return acc

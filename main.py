@@ -205,7 +205,7 @@ class AppWindow(QMainWindow):
 
         # force recalculation of the spinners
         self.set_speed(self.current_params.speed)
-        self.set_radius(self.current_params.radius)
+        self.set_radius(self.current_params.arc_radius)
         self.ui.progressSlider.setValue(0)
         self.re_calculate()
 
@@ -218,8 +218,7 @@ class AppWindow(QMainWindow):
         :return: modifies acceleration
         '''
         self.current_params.speed = speed
-        acceleration = self.path.get_turn_acceleration(
-            self.current_profile, self.current_params)
+        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.re_calculate()
 
@@ -230,9 +229,8 @@ class AppWindow(QMainWindow):
         :param radius: The radius of the central portion of the turn
         :return: modifies acceleration
         '''
-        self.current_params.radius = radius
-        acceleration = self.path.get_turn_acceleration(
-            self.current_profile, self.current_params)
+        self.current_params.arc_radius = radius
+        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         if self.ui.rbFullSine.isChecked():
             delta = math.pi * math.radians(self.current_params.angle) * radius / 4.0
@@ -247,9 +245,8 @@ class AppWindow(QMainWindow):
         :param length: The length of the cubic spiral path
         :return: Nothing
         '''
-        self.current_params.length = length
-        acceleration = self.path.get_turn_acceleration(
-            self.current_profile, self.current_params)
+        self.current_params.cubic_length = length
+        acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.set_safely(self.ui.cubicLengthSpinBox, int(length))
         self.re_calculate()
@@ -284,9 +281,9 @@ class AppWindow(QMainWindow):
         pivot_y = self.current_params.pivot_y
         start_angle = self.current_params.startAngle
         start_x = pivot_x + offset * \
-                  math.cos(math.pi / 2 + math.radians(start_angle))
+            math.cos(math.pi / 2 + math.radians(start_angle))
         start_y = pivot_y + offset * \
-                  math.sin(math.pi / 2 + math.radians(start_angle))
+            math.sin(math.pi / 2 + math.radians(start_angle))
         self.robot.set_pose(Pose(start_x, start_y, start_angle))
 
         self.set_safely(self.ui.startYSpinBox, int(start_y))
@@ -305,9 +302,9 @@ class AppWindow(QMainWindow):
     def set_parameters(self, params: TurnParameters):
         speed_now = self.ui.turnSpeedSpinBox.value()
         self.current_params = params
-        self.set_safely(self.ui.radiusSpinBox, int(params.radius))
+        self.set_safely(self.ui.radiusSpinBox, int(params.arc_radius))
         self.set_safely(self.ui.deltaSpinBox, int(params.delta))
-        self.set_safely(self.ui.cubicLengthSpinBox, int(params.length))
+        self.set_safely(self.ui.cubicLengthSpinBox, int(params.cubic_length))
         self.set_safely(self.ui.gammaSpinBox, int(params.gamma))
         self.set_safely(self.ui.slipSpinBox, int(params.slip_coefficient))
 
@@ -417,10 +414,11 @@ class AppWindow(QMainWindow):
         start_y = self.ui.startYSpinBox.value()
 
         # recalculate the path
-        self.path.calculate(self.current_profile, self.current_params, start_x, start_y, self.loop_interval)
+        self.path.calculate(self.current_profile, self.current_params,
+                            start_x, start_y, self.loop_interval)
         self.ui.progressSlider.setMinimum(0)
         self.ui.progressSlider.setMaximum(self.path.turn_end)
-        i = self.ui.progressSlider.value()
+        i = self.ui.progressSlider.value()        
         self.robot.set_pose(self.path.get_pose_at(i))
         state = self.path.get_state_at(i)
         pose = self.path.get_pose_at(i)

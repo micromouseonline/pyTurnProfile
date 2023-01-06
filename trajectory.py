@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Friday, 6th January 2023 8:47:31 am
+# Last Modified: Friday, 6th January 2023 9:17:24 am
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -54,7 +54,7 @@ class Profile:
             return 0.0
         x = max(0.0,p)
         x = min(1.0,p)
-        x = p * self.params.length
+        x = p * self.params.cubic_length
         return x
 
 class Cubic(Profile):
@@ -63,7 +63,7 @@ class Cubic(Profile):
 
     def setup(self, params : TurnParameters):
         self.params = params
-        self.k = 6.0*self.params.angle/ self.params.length
+        self.k = 6.0*self.params.angle/ self.params.cubic_length
 
     def get_omega(self,p,speed):
         omega = speed * self.k * p * (1-p)
@@ -78,7 +78,7 @@ class Trapezoid(Profile):
 
     def setup(self, params : TurnParameters):
         self.params = params
-        self.arc_omega = np.degrees(params.speed / params.radius)
+        self.arc_omega = np.degrees(params.speed / params.arc_radius)
         self.transition_angle = params.delta * self.arc_omega / (2.0 * params.speed)
         self.arc_angle = params.angle - 2 * self.transition_angle
         self.arc_length = params.speed * self.arc_angle / self.arc_omega
@@ -104,7 +104,7 @@ class Quadratic(Profile):
 
     def setup(self, params : TurnParameters):
         self.params = params
-        self.arc_omega = np.degrees(params.speed / params.radius)
+        self.arc_omega = np.degrees(params.speed / params.arc_radius)
         self.transition_angle = params.delta * self.arc_omega / (3.0 * params.speed)
         self.arc_angle = params.angle - 2 * self.transition_angle
         self.arc_length = params.speed * self.arc_angle / self.arc_omega
@@ -131,7 +131,7 @@ class Sinusoid(Profile):
 
     def setup(self, params : TurnParameters):
         self.params = params
-        self.arc_omega = np.degrees(params.speed / params.radius)
+        self.arc_omega = np.degrees(params.speed / params.arc_radius)
         self.transition_angle = params.delta * self.arc_omega / (np.pi * params.speed)
         self.arc_angle = params.angle - 2 * self.transition_angle
         self.arc_length = params.speed * self.arc_angle / self.arc_omega
@@ -207,10 +207,11 @@ class Trajectory:
         self.start_y = start_y # mm
         self.start_angle = np.radians(start_angle) # radians
         self.speed = speed # mm/s
-        self.reset_data()
+        # self.reset_data()
         #        
 
     def reset_data(self):
+        self.n_items = len(self.time)
         self.theta_ideal = np.zeros(self.n_items)
         self.omega_ideal = np.zeros(self.n_items)
         self.x_ideal = np.zeros(self.n_items)
@@ -241,10 +242,13 @@ class Trajectory:
             print("no profiler")
             return
         self.time = np.linspace(0,self.end_time,self.n_items)
+        self.reset_data()
         print("calculating")
-        for t in self.time:
+        for i,t in enumerate(self.time):
             p = t/self.end_time
             omega,phase = self.profiler.get_omega(p,self.speed)
+            self.omega_actual[i] = omega
+            print(i,omega)
             print(f"{t:.4f}  {omega:.4f}")
 
 
@@ -258,4 +262,5 @@ if __name__ == "__main__":
     profile.setup(default_params["SS90F"])
     trajectory.set_params(0,0,0,90,1500)    
     trajectory.calculate()
+    print(trajectory.omega_actual)
 
