@@ -13,6 +13,17 @@ class TurnParameters:
     angle: float = 0.0
     cubic_length: float = 0.0
 
+    # def __repr__(self):
+    #     s  = f"      pivot : ({self.pivot_x:.0f},{self.pivot_y:.0f})\n"
+    #     s += f"  max. speed: {self.speed:.0f}\n"
+    #     s += f"  arc radius: {self.arc_radius:.0f}\n"
+    #     s += f"       delta: {self.delta:.0f}\n"
+    #     s += f"      offset: {self.offset:.0f}\n"
+    #     s += f" start angle: {self.startAngle:.0f}\n"
+    #     s += f"  turn angle: {self.angle:.0f}\n"
+    #     s += f"cubic_length: {self.cubic_length:.0f}\n"
+    #     return s
+
 
 default_params = {
     "SS90F": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=68, arc_radius=112, startAngle=0, angle=90, speed=2200, cubic_length=248),
