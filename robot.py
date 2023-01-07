@@ -22,12 +22,12 @@ class Robot(QGraphicsItem):
 
     def set_pose(self, pose):
         self.pose = pose
-        self.setRotation(pose.theta)
+        self.setRotation(pose.theta +90)
         self.setPos(pose.x, pose.y)
 
-    def set_heading(self, degrees):
-        self.pose.theta = degrees
-        self.set_heading(self.pose.x, self.pose.y)
+    # def set_heading(self, degrees):
+    #     self.pose.theta = degrees
+    #     self.set_heading(self.pose.x, self.pose.y)
 
     def boundingRect(self):
         return QRectF(-180, -220, 360, 260)
@@ -63,8 +63,9 @@ class Robot(QGraphicsItem):
         pen.setWidth(2)
         pen.setColor(Qt.cyan)
         painter.setPen(pen)
+        # center of rotation and heading marker
         painter.drawEllipse(-10, -10, 20, 20)
-        painter.drawLine(0, 0, 0, -20)
+        painter.drawLine(0, 0, 0, -80)
         # BODY
         wheel_width = 8
         left_outer = -self.width // 2
