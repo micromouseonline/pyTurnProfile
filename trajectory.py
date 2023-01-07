@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 1:15:38 am
+# Last Modified: Saturday, 7th January 2023 1:30:00 am
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -160,15 +160,16 @@ class Trajectory:
             b_dot = -(np.radians(omega) + self.k_grip * np.radians(beta) / speed)
             return np.degrees(b_dot)
 
-
+        self.theta_actual[0] = self.start_angle
         print(self.speed, self.k_grip, self.k_grip/self.speed)
         for i in range(len(self.time)):
-            if i > 1:
+            if i > 0:
                 omega = self.omega_ideal[i-1]
                 last_beta = self.beta[i-1]
                 b_dot = beta_dot(omega,last_beta, self.speed)
                 self.beta[i] = last_beta + self.delta_t * b_dot
                 self.theta_actual[i] = self.theta_ideal[i] + self.beta[i]
+                self.omega_actual[i] = (self.theta_actual[i]-self.theta_actual[i-1])/self.delta_t
 
         x = self.start_x
         y = self.start_y
@@ -179,8 +180,6 @@ class Trajectory:
             y += self.speed * np.sin(np.radians(angle)) * self.delta_t
         self.x_actual[-1] = x
         self.y_actual[-1] = y
-
-        self.omega_actual = np.gradient(self.theta_actual[1:-1])/self.delta_t
 
 
 
@@ -243,7 +242,7 @@ if __name__ == "__main__":
         # plt.plot(trajectory.time,trajectory.theta_ideal)
         # plt.plot(trajectory.time,trajectory.theta_actual)
         # plt.plot(trajectory.time,trajectory.omega_ideal, label = 'omega_ideal')
-        # plt.plot(trajectory.time[1:-1],trajectory.omega_actual, label = 'omega actual')
+        # plt.plot(trajectory.time,trajectory.omega_actual, label = 'omega actual')
         plt.title(f"Angular Velocity\nspeed = {trajectory.speed:.0f} mm/s")
         plt.legend(loc = 'upper right')
         plt.grid()
