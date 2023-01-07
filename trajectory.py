@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 12:56:26 pm
+# Last Modified: Saturday, 7th January 2023 2:03:25 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -136,7 +136,7 @@ class Trajectory:
             self.phase[i] = phase
             self.distance[i] = t * self.speed
             if i > 0:
-                self.alpha = (self.omega_ideal[i] - self.omega_ideal[i-1])/self.delta_t
+                self.alpha[i] = (self.omega_ideal[i] - self.omega_ideal[i-1])/self.delta_t
 
         
         
