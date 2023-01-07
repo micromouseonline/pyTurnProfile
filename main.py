@@ -331,8 +331,7 @@ class AppWindow(QMainWindow):
         end_time = self.path.trajectory.time[-1]
         distance = self.path.trajectory.distance[-1]
         self.ui.textEdit.clear()
-        self.ui.textEdit.append(
-            f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
+        self.ui.textEdit.append(f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
         self.ui.textEdit.append(f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
         self.ui.textEdit.append(f"Cent'l Accel'n: {self.path.get_max_acceleration():5.0f} mm/s/s")
         self.ui.textEdit.append(f" Wheel Accel'n: {wheel_acc:5.0f} mm/s/s")

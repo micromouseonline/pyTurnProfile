@@ -76,11 +76,7 @@ class Path(QGraphicsItem):
 
 
     def get_max_omega(self):
-        max_omega = 0
-        for state in self.path_points[:self.turn_end]:
-            if state.omega > max_omega:
-                max_omega = state.omega
-        return max_omega
+        return np.max(self.trajectory.omega_ideal)
 
     def paint(self, painter, option, widget):
         # if len(self.path_points) == 0:
