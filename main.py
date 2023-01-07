@@ -271,10 +271,8 @@ class AppWindow(QMainWindow):
         pivot_x = self.current_params.pivot_x
         pivot_y = self.current_params.pivot_y
         start_angle = self.current_params.startAngle
-        start_x = pivot_x + offset * \
-            math.cos(math.pi / 2 + math.radians(start_angle))
-        start_y = pivot_y + offset * \
-            math.sin(math.pi / 2 + math.radians(start_angle))
+        start_x = pivot_x + offset * math.cos(math.pi / 2 + math.radians(start_angle))
+        start_y = pivot_y + offset * math.sin(math.pi / 2 + math.radians(start_angle))
         self.robot.set_pose(Pose(start_x, start_y, start_angle))
 
         self.set_safely(self.ui.startYSpinBox, int(start_y))
