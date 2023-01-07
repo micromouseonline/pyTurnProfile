@@ -83,7 +83,8 @@ class Path(QGraphicsItem):
         return max_omega
 
     def paint(self, painter, option, widget):
-        if len(self.path_points) == 0:
+        # if len(self.path_points) == 0:
+        if self.trajectory.n_items == 0:
             return
         colors = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
         colors_ideal = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
@@ -91,6 +92,7 @@ class Path(QGraphicsItem):
         pen = QPen(Qt.white)
         pen.setWidthF(2.0)
         painter.setPen(pen)
+        print("paint path")
         for i in range(0, self.trajectory.n_items, 5):
             
             # state = self.path_points[i]
@@ -140,38 +142,38 @@ class Path(QGraphicsItem):
         self.update()
 
     def calculate_sinusoid(self, params: TurnParameters, startx, starty, loop_interval):
-        self.path_points.clear()
-        state = RobotState()
-        state.set_interval(loop_interval)
-        state.x = startx
-        state.y = starty
-        state.speed = params.max_speed
-        state.theta = params.startAngle
-        self.path_points.append(copy.copy(state))
+        # self.path_points.clear()
+        # state = RobotState()
+        # state.set_interval(loop_interval)
+        # state.x = startx
+        # state.y = starty
+        # state.speed = params.max_speed
+        # state.theta = params.startAngle
+        # self.path_points.append(copy.copy(state))
 
-        end_angle = params.startAngle + params.angle
-        arc_omega = math.degrees(params.max_speed / params.arc_radius)
-        transition_angle = params.delta * 2 * arc_omega / (math.pi * params.max_speed)
-        arc_angle = params.angle - 2 * transition_angle
-        arc_length = params.max_speed * arc_angle / arc_omega
-        turn_distance = 2 * params.delta + arc_length
+        # end_angle = params.startAngle + params.angle
+        # arc_omega = math.degrees(params.max_speed / params.arc_radius)
+        # transition_angle = params.delta * 2 * arc_omega / (math.pi * params.max_speed)
+        # arc_angle = params.angle - 2 * transition_angle
+        # arc_length = params.max_speed * arc_angle / arc_omega
+        # turn_distance = 2 * params.delta + arc_length
 
-        while state.theta <= end_angle - 0.01:
-            if state.theta < params.startAngle + transition_angle:
-                t = state.distance / params.delta
-                state.omega = arc_omega * math.sin(math.pi / 2 * t)
-                state.phase = 1
-            elif state.theta <= (end_angle - transition_angle):
-                state.omega = arc_omega
-                state.phase = 2
-            else:
-                t = (turn_distance - state.distance) / params.delta
-                state.omega = arc_omega * math.sin(math.pi / 2 * t)
-                state.phase = 3
-            state.update()
-            self.path_points.append(copy.copy(state))
-        self.turn_end = len(self.path_points) - 1
-        self.calculate_leadout(state)
+        # while state.theta <= end_angle - 0.01:
+        #     if state.theta < params.startAngle + transition_angle:
+        #         t = state.distance / params.delta
+        #         state.omega = arc_omega * math.sin(math.pi / 2 * t)
+        #         state.phase = 1
+        #     elif state.theta <= (end_angle - transition_angle):
+        #         state.omega = arc_omega
+        #         state.phase = 2
+        #     else:
+        #         t = (turn_distance - state.distance) / params.delta
+        #         state.omega = arc_omega * math.sin(math.pi / 2 * t)
+        #         state.phase = 3
+        #     state.update()
+        #     self.path_points.append(copy.copy(state))
+        # self.turn_end = len(self.path_points) - 1
+        # self.calculate_leadout(state)
         self.update()
 
     def calculate_full_sinusoid(self, params: TurnParameters, startx, starty, loop_interval):
@@ -276,21 +278,24 @@ class Path(QGraphicsItem):
             self.path_points.append(copy.copy(state))
 
     def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty, loop_interval):
+        profile = Trapezoid()
         if profile_type == ProfileType.QUADRATIC:
-            self.calculate_quadratic(params, startx, starty, loop_interval)
+            profile = Quadratic()
         elif profile_type == ProfileType.SINUSOID:
-            self.calculate_sinusoid(params, startx, starty, loop_interval)
+            profile = Sinusoid()
         elif profile_type == ProfileType.FULL_SINUSOID:
-            self.calculate_full_sinusoid(params, startx, starty, loop_interval)
+            profile = FullSinusoid()
         elif profile_type == ProfileType.CUBIC:
-            self.calculate_cubic(params, startx, starty, loop_interval)
+            profile = Cubic()
         else:
-            self.calculate_trapezoid(params, startx, starty, loop_interval)   
+            profile = Trapezoid()
+        self.trajectory.set_profiler(profile)
         params.speed = params.max_speed
         params.k_grip = 200
         self.trajectory.set_params(params)
         self.trajectory.set_start_xy(startx,starty)
         self.trajectory.calculate()
+        self.update()
         return
 
     def get_turn_acceleration(self, profile_type: ProfileType, params: TurnParameters):

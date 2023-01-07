@@ -366,12 +366,16 @@ class AppWindow(QMainWindow):
         title_style = {'color': 'cyan', 'size': '12px'}
 
         # use the entire path including the leadout
-        path = self.path.path_points[:-1]
-        path_time = [s.time for s in path]
-        end_time = path_time[-1]
-        omega = np.array([s.omega for s in path])
-        speed = np.array([s.speed for s in path])
-        alpha = np.array([s.alpha for s in path])  # could be calculated not stored
+        # path = self.path.path_points[:-1]
+        # path_time = [s.time for s in path]
+        path_time = self.path.trajectory.time
+        # end_time = path_time[-1]
+        # omega = np.array([s.omega for s in path])
+        # speed = np.array([s.speed for s in path])
+        # alpha = np.array([s.alpha for s in path])  # could be calculated not stored
+        omega = self.path.trajectory.omega_ideal
+        speed = self.path.trajectory.speed
+        alpha = self.path.trajectory.alpha
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
 
