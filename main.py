@@ -364,31 +364,23 @@ class AppWindow(QMainWindow):
         now = perf_counter()
         axes = self.ui.mpl_widget.axes
         title_style = {'color': 'cyan', 'size': '12px'}
-
-        # use the entire path including the leadout
-        # path = self.path.path_points[:-1]
-        # path_time = [s.time for s in path]
+        interval = self.path.trajectory.delta_t
         path_time = self.path.trajectory.time
-        # end_time = path_time[-1]
-        # omega = np.array([s.omega for s in path])
-        # speed = np.array([s.speed for s in path])
-        # alpha = np.array([s.alpha for s in path])  # could be calculated not stored
         omega = self.path.trajectory.omega_ideal
         speed = self.path.trajectory.speed
         alpha = self.path.trajectory.alpha
         left_speed = speed + self.robot.radius * np.radians(omega)
         right_speed = speed - self.robot.radius * np.radians(omega)
 
-        # Note that it is more efficient to just update the data
-        # rather than re-create all the plots
+        # It is more efficient to update the data rather than re-create all the plots
         for p in axes:
             p.clear()
 
-        self.plot(path_time, 0.001 * left_speed, axes[0], "L", palette[3])
-        self.plot(path_time, 0.001 * right_speed, axes[0], "R", palette[4])
-        self.plot(path_time, 0.001 * speed * np.radians(omega), axes[1], "R", palette[2])
+        self.plot(path_time, interval * left_speed, axes[0], "L", palette[3])
+        self.plot(path_time, interval * right_speed, axes[0], "R", palette[4])
+        self.plot(path_time, interval * speed * np.radians(omega), axes[1], "R", palette[2])
+        self.plot(path_time, interval * alpha, axes[3], 'q', palette[6])
         self.plot(path_time, omega, axes[2], '', palette[5])
-        self.plot(path_time, 0.001 * alpha, axes[3], 'q', palette[6])
 
         elapsed = perf_counter() - now
         global fps

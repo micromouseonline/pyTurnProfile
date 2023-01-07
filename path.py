@@ -62,8 +62,8 @@ class Path(QGraphicsItem):
         return self.path_points[index]
 
     def get_pose_at(self, index):
-        x = self.trajectory.x_ideal[index]
-        y = self.trajectory.y_ideal[index]
+        x = self.trajectory.x_actual[index]
+        y = self.trajectory.y_actual[index]
         theta = self.trajectory.theta_ideal[index]
         return Pose(x,y,theta)
 
@@ -103,15 +103,59 @@ class Path(QGraphicsItem):
             rect = QRectF(self.trajectory.x_ideal[i], self.trajectory.y_ideal[i], 1.0, 1.0)
             painter.setPen(pen)
             painter.drawEllipse(rect)
-   
-    def calculate_leadout(self, state: RobotState):
-        state.phase = 4
-        state.omega = 0
-        state.alpha=0
-        target_distance = state.distance + 100.0
-        while state.distance < target_distance:
-            state.update()
-            self.path_points.append(copy.copy(state))
+        xi,yi,xa,ya = self.calculate_leadout()
+        pen.setColor(colors_ideal[5])
+        painter.setPen(pen)
+        for i,x_pos in enumerate(xi):
+            rect = QRectF(xi[i], yi[i], 1.0, 1.0)
+            painter.drawEllipse(rect)
+        pen.setColor(colors_actual[5])
+        painter.setPen(pen)
+        for i,x_pos in enumerate(xi):
+            rect = QRectF(xa[i], ya[i], 1.0, 1.0)
+            painter.drawEllipse(rect)
+
+    
+    def calculate_leadout(self):
+        distance = 100
+        speed = self.trajectory.speed
+        t0 = self.trajectory.time[-1]
+        t1 = t0 + distance/speed
+        print(t1-t0)
+        time = np.arange(t0,t1,self.trajectory.delta_t)
+        x_ideal = np.zeros(len(time))
+        y_ideal = np.zeros(len(time))
+        x_actual = np.zeros(len(time))
+        y_actual = np.zeros(len(time))
+        angle = self.trajectory.theta_ideal[-1]
+        x_i = self.trajectory.x_ideal[-1]
+        y_i = self.trajectory.y_ideal[-1]
+        x_a = self.trajectory.x_actual[-1]
+        y_a = self.trajectory.y_actual[-1]
+        for i,t in enumerate(time):
+            x_ideal[i] = x_i
+            y_ideal[i] = y_i
+            x_actual[i] = x_a
+            y_actual[i] = y_a
+            dx = speed * np.cos(np.radians(angle)) * self.trajectory.delta_t
+            dy = speed * np.sin(np.radians(angle)) * self.trajectory.delta_t
+            x_i += dx
+            y_i += dy
+            x_a += dx
+            y_a += dy
+        x_ideal[-1] = x_i
+        y_ideal[-1] = y_i
+        x_actual[-1] = x_a
+        y_actual[-1] = y_a
+        return (x_ideal,y_ideal,x_actual,y_actual)
+
+        # state.phase = 4
+        # state.omega = 0
+        # state.alpha=0
+        # target_distance = state.distance + 100.0
+        # while state.distance < target_distance:
+        #     state.update()
+        #     self.path_points.append(copy.copy(state))
 
     def calculate(self, profile_type: ProfileType, params: TurnParameters, startx, starty, loop_interval):
         profile = Trapezoid()
@@ -132,7 +176,7 @@ class Path(QGraphicsItem):
         self.trajectory.set_start_xy(startx,starty)
         self.trajectory.calculate()
         # remember turn exit point
-        # self.calculate_leadout(state)
+        self.calculate_leadout()
         self.update()
         return
 
