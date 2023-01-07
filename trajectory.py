@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 12:03:21 am
+# Last Modified: Saturday, 7th January 2023 1:15:38 am
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -49,7 +49,7 @@ class Trajectory:
         self.start_y = 0.0 # mm
         self.start_angle = 0.0 # radians
         self.speed = 0.0 # mm/s
-        self.k_slip = 100.0 
+        self.k_grip = 100.0 
         self.delta_t = 0.001
         #
         self.n_items = 0
@@ -112,6 +112,7 @@ class Trajectory:
         # self.parameters = params
         self.speed = params.speed
         self.start_angle = params.startAngle
+        self.k_grip = params.k_grip
         self.profiler.setup(params)
         
 
@@ -154,36 +155,32 @@ class Trajectory:
         self.y_ideal[-1] = y
 
         # now do it with the slip angle taken into account
-        def beta_dot(omega,beta):
-            b_dot = -(np.radians(omega) + self.k_slip * np.radians(beta) / self.speed)
+        def beta_dot(omega,beta, speed):
+            speed = speed/1000.0
+            b_dot = -(np.radians(omega) + self.k_grip * np.radians(beta) / speed)
             return np.degrees(b_dot)
 
-        imu_omega = self.omega_ideal[0]
-        # beta = 0.0
-        # x = self.start_x
-        # y = self.start_y
-        # for i,omega in enumerate(self.omega_ideal):
-        #     if i > 0:
-        #         self.beta[i] = beta + self.delta_t*beta_dot(imu_omega,beta)
-        #         angle = self.theta_ideal[i] + beta
-        #         self.theta_actual[i] = angle
-        #         beta = self.beta[i] 
-        #         imu_omega = self.omega_ideal[i]
-        #         self.x_actual[i] = x
-        #         self.y_actual[i] = y
-        #         # x += self.speed * np.cos(angle) * self.delta_t
-        #         # y += self.speed * np.sin(angle) * self.delta_t
-        # self.x_actual[i] = x
-        # self.y_actual[i] = y
 
+        print(self.speed, self.k_grip, self.k_grip/self.speed)
+        for i in range(len(self.time)):
+            if i > 1:
+                omega = self.omega_ideal[i-1]
+                last_beta = self.beta[i-1]
+                b_dot = beta_dot(omega,last_beta, self.speed)
+                self.beta[i] = last_beta + self.delta_t * b_dot
+                self.theta_actual[i] = self.theta_ideal[i] + self.beta[i]
 
+        x = self.start_x
+        y = self.start_y
+        for i,angle in enumerate(self.theta_actual):
+            self.x_actual[i] = x
+            self.y_actual[i] = y
+            x += self.speed * np.cos(np.radians(angle)) * self.delta_t
+            y += self.speed * np.sin(np.radians(angle)) * self.delta_t
+        self.x_actual[-1] = x
+        self.y_actual[-1] = y
 
-
-
-        for i,t in enumerate(self.time):
-            # if i > 0:
-            #     self.theta_ideal[i] = self.theta_ideal[i-1] + self.omega_ideal[i-1] * self.delta_t
-            print(f"{t:.4f}  {self.omega_ideal[i]:.4f}  {self.theta_ideal[i]:.4f}")
+        self.omega_actual = np.gradient(self.theta_actual[1:-1])/self.delta_t
 
 
 
@@ -196,15 +193,27 @@ if __name__ == "__main__":
     profile = Cubic()
     trajectory.set_profiler(profile)
     
-    parameters = copy.copy(default_params["SS180"])
-    parameters.speed = 1000
+    parameters = copy.copy(default_params["SS90F"])
+    parameters.speed = 2400.1
+    parameters.k_grip = 200.0
+    # must we have k_grip < 2 * speed?
+    # if so, why?
     trajectory.set_params(parameters)
     
     trajectory.set_start(0,0)
     trajectory.calculate()
     
     print(parameters)
+    end_x_ideal = trajectory.x_ideal[-1]
+    end_y_ideal = trajectory.y_ideal[-1]
+    end_x_actual = trajectory.x_actual[-1]
+    end_y_actual = trajectory.y_actual[-1]
+    dx = abs(end_x_ideal-end_x_actual)
+    dy = abs(end_y_ideal - end_y_actual)
+
     print(f"{trajectory.x_ideal[-1]:.0f},{trajectory.y_ideal[-1]:.0f}")
+    print(f"{trajectory.x_actual[-1]:.0f},{trajectory.y_actual[-1]:.0f}")
+    print(f"{dx:.1f},{dy:.1f}")
     # print(trajectory.speed, profile.speed)
     if trajectory.is_configured():
         plt.figure(figsize=(15, 8))
@@ -217,21 +226,26 @@ if __name__ == "__main__":
         ax.set_aspect('equal', adjustable='box')
 
         plt.plot(trajectory.x_ideal,trajectory.y_ideal, label = 'Ideal')
-        # plt.plot(trajectory.x_actual,trajectory.y_actual)
+        plt.plot(trajectory.x_actual,trajectory.y_actual, label = 'Actual')
         plt.axis([-10, 200, -10, 200])
         plt.grid()
         plt.title(f"Trajectory\nspeed = {trajectory.speed:.0f} mm/s")
         plt.legend(loc = 'upper right')
         plt.subplot(1,2,2,)
         ax = plt.gca()
-        ax.xaxis.set_major_locator(tick.MultipleLocator(0.05))
-        ax.xaxis.set_minor_locator(tick.MultipleLocator(0.01))
-        ax.yaxis.set_major_locator(tick.MultipleLocator(50))
-        ax.yaxis.set_minor_locator(tick.MultipleLocator(10))
+        # ax.xaxis.set_major_locator(tick.MultipleLocator(0.05))
+        # ax.xaxis.set_minor_locator(tick.MultipleLocator(0.01))
+        # ax.yaxis.set_major_locator(tick.MultipleLocator(50))
+        # ax.yaxis.set_minor_locator(tick.MultipleLocator(10))
         # ax.set_aspect('equal', adjustable='box')
 
         plt.plot(trajectory.time,trajectory.beta)
-        plt.plot(trajectory.time,trajectory.omega_ideal)
+        # plt.plot(trajectory.time,trajectory.theta_ideal)
+        # plt.plot(trajectory.time,trajectory.theta_actual)
+        # plt.plot(trajectory.time,trajectory.omega_ideal, label = 'omega_ideal')
+        # plt.plot(trajectory.time[1:-1],trajectory.omega_actual, label = 'omega actual')
+        plt.title(f"Angular Velocity\nspeed = {trajectory.speed:.0f} mm/s")
+        plt.legend(loc = 'upper right')
         plt.grid()
         plt.show()
 
