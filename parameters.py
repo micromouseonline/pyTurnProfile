@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 
+'''
+Actuallly these are profile parameters it seems
+There should be a set for each profile type
+'''
 
 @dataclass
 class TurnParameters:
@@ -12,6 +16,8 @@ class TurnParameters:
     startAngle: float = 0.0
     angle: float = 0.0
     cubic_length: float = 0.0
+    speed: float = 0.0
+    k_grip: float = 2000.0 
 
     # def __repr__(self):
     #     s  = f"      pivot : ({self.pivot_x:.0f},{self.pivot_y:.0f})\n"
@@ -26,15 +32,15 @@ class TurnParameters:
 
 
 default_params = {
-    "SS90F": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=68, arc_radius=112, startAngle=0, angle=90, max_speed=2200, cubic_length=248),
-    "SS180": TurnParameters(pivot_x=0, pivot_y=0, offset=160, delta=127, arc_radius=85, startAngle=0, angle=180, max_speed=2000, cubic_length=370),
-    "SD45": TurnParameters(pivot_x=0, pivot_y=0, offset=160, delta=65, arc_radius=110, startAngle=0, angle=45, max_speed=2200, cubic_length=134),
-    "SD135": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=90, arc_radius=83, startAngle=0, angle=135, max_speed=1800, cubic_length=266),
-    "DS45": TurnParameters(pivot_x=90, pivot_y=0, offset=75, delta=70, arc_radius=120, startAngle=45, angle=45, max_speed=2200, cubic_length=144),
-    "DS135": TurnParameters(pivot_x=90, pivot_y=0, offset=105, delta=90, arc_radius=80, startAngle=45, angle=135, max_speed=1800, cubic_length=257),
-    "DD90": TurnParameters(pivot_x=90, pivot_y=0, offset=105, delta=80, arc_radius=74, startAngle=45, angle=90, max_speed=1800, cubic_length=173),
-    "SS90E": TurnParameters(pivot_x=0, pivot_y=0, offset=75, delta=50, arc_radius=56, startAngle=0, angle=90, max_speed=1000, cubic_length=124),
-    "DD90K": TurnParameters(pivot_x=0, pivot_y=0, offset=100, delta=50, arc_radius=199, startAngle=45, angle=90, max_speed=1000, cubic_length=371),
+    "SS90F": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=68, arc_radius=112, startAngle=0, angle=90, max_speed=2200, cubic_length=248, speed = 500, k_grip = 1000),
+    "SS180": TurnParameters(pivot_x=0, pivot_y=0, offset=160, delta=127, arc_radius=85, startAngle=0, angle=180, max_speed=2000, cubic_length=370, speed = 500, k_grip = 1000),
+    "SD45": TurnParameters(pivot_x=0, pivot_y=0, offset=160, delta=65, arc_radius=110, startAngle=0, angle=45, max_speed=2200, cubic_length=134, speed = 500, k_grip = 1000),
+    "SD135": TurnParameters(pivot_x=0, pivot_y=0, offset=150, delta=90, arc_radius=83, startAngle=0, angle=135, max_speed=1800, cubic_length=266, speed = 500, k_grip = 1000),
+    "DS45": TurnParameters(pivot_x=90, pivot_y=0, offset=75, delta=70, arc_radius=120, startAngle=45, angle=45, max_speed=2200, cubic_length=144, speed = 500, k_grip = 1000),
+    "DS135": TurnParameters(pivot_x=90, pivot_y=0, offset=105, delta=90, arc_radius=80, startAngle=45, angle=135, max_speed=1800, cubic_length=257, speed = 500, k_grip = 1000),
+    "DD90": TurnParameters(pivot_x=90, pivot_y=0, offset=105, delta=80, arc_radius=74, startAngle=45, angle=90, max_speed=1800, cubic_length=173, speed = 500, k_grip = 1000),
+    "SS90E": TurnParameters(pivot_x=0, pivot_y=0, offset=75, delta=50, arc_radius=56, startAngle=0, angle=90, max_speed=1000, cubic_length=124, speed = 500, k_grip = 1000),
+    "DD90K": TurnParameters(pivot_x=0, pivot_y=0, offset=100, delta=50, arc_radius=199, startAngle=45, angle=90, max_speed=1000, cubic_length=371, speed = 500, k_grip = 1000),
 }
 
 working_params = {

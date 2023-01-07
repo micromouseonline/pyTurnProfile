@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Friday, 6th January 2023 7:03:13 pm
+# Last Modified: Saturday, 7th January 2023 12:03:21 am
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -49,13 +49,14 @@ class Trajectory:
         self.start_y = 0.0 # mm
         self.start_angle = 0.0 # radians
         self.speed = 0.0 # mm/s
-        self.k_slip = 10000.0 
+        self.k_slip = 100.0 
         self.delta_t = 0.001
         #
         self.n_items = 0
         self.end_time = 0.0
         self.time = None
         #
+        self.phase = None
         self.theta_ideal = None
         self.omega_ideal = None
         self.x_ideal = None
@@ -67,22 +68,28 @@ class Trajectory:
         self.x_actual = None
         self.y_actual = None
         #
-        self.profiler = None
+        self.profiler : TurnProfile = None
+        # self.parameters : TurnParameters = None
+        
 
-    def set_params(self, start_x, start_y, start_angle, speed):
-        # self.turn_angle = np.radians(turn_angle) # radians
-        self.start_x = start_x # mm
-        self.start_y = start_y # mm
-        self.start_angle = np.radians(start_angle) # radians
-        self.speed = speed # mm/s
-        self.reset_data()
-        #        
+    def is_configured(self):
+        # if self.parameters == None:
+        #     print("no parameters")
+        #     return False
+        if self.profiler is None:
+            print("no profiler")
+            return False
+        return True
+        
 
     def reset_data(self):
+        if not self.is_configured():
+            return
         if self.speed < 1:
             return
         self.end_time = self.profiler.length/self.speed
-        self.n_items = 1+int(0.5+self.end_time/self.delta_t)
+        self.n_items = 1+int(0.5+self.end_time/self.delta_t)        
+        self.phase = np.zeros(self.n_items)
         self.theta_ideal = np.zeros(self.n_items)
         self.omega_ideal = np.zeros(self.n_items)
         self.x_ideal = np.zeros(self.n_items)
@@ -93,12 +100,20 @@ class Trajectory:
         self.x_actual = np.zeros(self.n_items)
         self.y_actual = np.zeros(self.n_items)
         
+    def set_start(self, start_x, start_y):
+        self.start_x = start_x # mm
+        self.start_y = start_y # mm
+            
     def set_profiler(self,profiler):
         self.profiler = profiler
-        self.reset_data()
         
-    def set_speed(self, speed):
-        self.speed = speed
+
+    def set_params(self, params : TurnParameters ):
+        # self.parameters = params
+        self.speed = params.speed
+        self.start_angle = params.startAngle
+        self.profiler.setup(params)
+        
 
     def set_start_xy(self,x,y):
         self.start_x = x
@@ -108,11 +123,7 @@ class Trajectory:
         self.start_angle = angle
 
     def calculate(self):
-        # if self.n_items == 0:
-        #     print("no parameters")
-        #     return
-        if self.profiler is None:
-            print("no profiler")
+        if not self.is_configured():
             return
         self.reset_data()        
         print(f"{self.end_time:.3f} {self.n_items}")
@@ -123,14 +134,52 @@ class Trajectory:
             p = t/self.end_time
             omega,phase = self.profiler.get_omega(p)
             self.omega_ideal[i] = omega
-        # nast hack for rounding errors
+            self.phase[i] = phase
 
 
         # now we have the angular velocity as a function of time
         print(self.delta_t)
         self.theta_ideal = np.cumsum(self.omega_ideal * self.delta_t) + self.start_angle
+        # nast hack for rounding errors
         self.theta_ideal[-1] = self.profiler.params.angle
-        
+        x = self.start_x
+        y = self.start_y
+        for i,angle in enumerate(self.theta_ideal):
+            self.x_ideal[i] = x
+            self.y_ideal[i] = y
+            angle = np.radians(angle)
+            x += self.speed * np.cos(angle) * self.delta_t
+            y += self.speed * np.sin(angle) * self.delta_t
+        self.x_ideal[-1] = x
+        self.y_ideal[-1] = y
+
+        # now do it with the slip angle taken into account
+        def beta_dot(omega,beta):
+            b_dot = -(np.radians(omega) + self.k_slip * np.radians(beta) / self.speed)
+            return np.degrees(b_dot)
+
+        imu_omega = self.omega_ideal[0]
+        # beta = 0.0
+        # x = self.start_x
+        # y = self.start_y
+        # for i,omega in enumerate(self.omega_ideal):
+        #     if i > 0:
+        #         self.beta[i] = beta + self.delta_t*beta_dot(imu_omega,beta)
+        #         angle = self.theta_ideal[i] + beta
+        #         self.theta_actual[i] = angle
+        #         beta = self.beta[i] 
+        #         imu_omega = self.omega_ideal[i]
+        #         self.x_actual[i] = x
+        #         self.y_actual[i] = y
+        #         # x += self.speed * np.cos(angle) * self.delta_t
+        #         # y += self.speed * np.sin(angle) * self.delta_t
+        # self.x_actual[i] = x
+        # self.y_actual[i] = y
+
+
+
+
+
         for i,t in enumerate(self.time):
             # if i > 0:
             #     self.theta_ideal[i] = self.theta_ideal[i-1] + self.omega_ideal[i-1] * self.delta_t
@@ -139,15 +188,50 @@ class Trajectory:
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    import matplotlib.ticker as tick
+    import copy
     trajectory = Trajectory()
+    
     profile = Cubic()
     trajectory.set_profiler(profile)
-    profile.setup(default_params["SS90F"], 1000)
-
-    trajectory.set_start_xy(0,0)   
-    trajectory.set_start_angle(0)   
-    trajectory.set_speed(1000)
-
+    
+    parameters = copy.copy(default_params["SS180"])
+    parameters.speed = 1000
+    trajectory.set_params(parameters)
+    
+    trajectory.set_start(0,0)
     trajectory.calculate()
-    print(default_params["SS90F"])
+    
+    print(parameters)
+    print(f"{trajectory.x_ideal[-1]:.0f},{trajectory.y_ideal[-1]:.0f}")
+    # print(trajectory.speed, profile.speed)
+    if trajectory.is_configured():
+        plt.figure(figsize=(15, 8))
+        plt.subplot(1,2,1)    
+        ax = plt.gca()
+        ax.xaxis.set_major_locator(tick.MultipleLocator(45))
+        ax.yaxis.set_major_locator(tick.MultipleLocator(45))
+        ax.xaxis.set_minor_locator(tick.MultipleLocator(5))
+        ax.yaxis.set_minor_locator(tick.MultipleLocator(5))
+        ax.set_aspect('equal', adjustable='box')
+
+        plt.plot(trajectory.x_ideal,trajectory.y_ideal, label = 'Ideal')
+        # plt.plot(trajectory.x_actual,trajectory.y_actual)
+        plt.axis([-10, 200, -10, 200])
+        plt.grid()
+        plt.title(f"Trajectory\nspeed = {trajectory.speed:.0f} mm/s")
+        plt.legend(loc = 'upper right')
+        plt.subplot(1,2,2,)
+        ax = plt.gca()
+        ax.xaxis.set_major_locator(tick.MultipleLocator(0.05))
+        ax.xaxis.set_minor_locator(tick.MultipleLocator(0.01))
+        ax.yaxis.set_major_locator(tick.MultipleLocator(50))
+        ax.yaxis.set_minor_locator(tick.MultipleLocator(10))
+        # ax.set_aspect('equal', adjustable='box')
+
+        plt.plot(trajectory.time,trajectory.beta)
+        plt.plot(trajectory.time,trajectory.omega_ideal)
+        plt.grid()
+        plt.show()
 

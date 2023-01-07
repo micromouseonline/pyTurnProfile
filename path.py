@@ -89,6 +89,9 @@ class Path(QGraphicsItem):
             rect = QRectF(state.x, state.y, 1.0, 1.0)
             painter.drawEllipse(rect)
 
+    '''
+    Tthe profilers get the entire set of omega, theta, phase for the turn
+    '''
     def calculate_trapezoid(self, params: TurnParameters, startx, starty, loop_interval):
         self.path_points.clear()
         state = RobotState()
