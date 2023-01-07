@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 2:03:25 pm
+# Last Modified: Saturday, 7th January 2023 10:32:23 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -118,8 +118,8 @@ class Trajectory:
         self.start_x = x
         self.start_y = y
 
-    def set_start_angle(self,angle):
-        self.start_angle = angle
+    # def set_start_angle(self,angle):
+    #     self.start_angle = angle
 
     def calculate(self):
         if not self.is_configured():
@@ -139,16 +139,11 @@ class Trajectory:
                 self.alpha[i] = (self.omega_ideal[i] - self.omega_ideal[i-1])/self.delta_t
 
         
-        
-
-            
-
-
         # now we have the angular velocity as a function of time
         print(self.delta_t)
-        self.theta_ideal = np.cumsum(self.omega_ideal * self.delta_t) + self.start_angle
+        self.theta_ideal = np.cumsum(self.omega_ideal * self.delta_t) + self.start_angle -90
         # nast hack for rounding errors
-        self.theta_ideal[-1] = self.profiler.params.angle
+        # self.theta_ideal[-1] = self.profiler.params.angle
         x = self.start_x
         y = self.start_y
         for i,angle in enumerate(self.theta_ideal):
@@ -203,6 +198,8 @@ if __name__ == "__main__":
     parameters.k_grip = 200.0
     # must we have k_grip < 2 * speed?
     # if so, why?
+    # hacky angle setting because of deficiencies in main application
+    parameters.startAngle += 90
     trajectory.set_params(parameters)
     
     trajectory.set_start_xy(0,0)

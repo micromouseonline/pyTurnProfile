@@ -127,7 +127,7 @@ class Path(QGraphicsItem):
         y_ideal = np.zeros(len(time))
         x_actual = np.zeros(len(time))
         y_actual = np.zeros(len(time))
-        angle = self.trajectory.theta_ideal[-1]
+        angle = self.trajectory.theta_ideal[-1] 
         x_i = self.trajectory.x_ideal[-1]
         y_i = self.trajectory.y_ideal[-1]
         x_a = self.trajectory.x_actual[-1]
