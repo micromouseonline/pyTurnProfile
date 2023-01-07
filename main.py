@@ -8,6 +8,8 @@ from parameters import TurnParameters, default_params
 from pose import Pose
 from robot import Robot
 from path import Path, ProfileType
+from trajectory import Trajectory
+import profilers
 from ui_pyturnprofile import Ui_MainWindow
 from time import perf_counter
 
@@ -82,9 +84,10 @@ class AppWindow(QMainWindow):
         self.plot_ref_left_wheel = None
         self.plot_ref_right_wheel = None
 
-        # these get sensible values at te end of the initialisation
-        self.current_params = -1
-        self.current_profile = -1
+        # these get sensible values at the end of the initialisation
+        self.current_params = None
+        self.current_profile = None
+        
 
         # connect everything up
         self.ui.deltaSpinBox.valueChanged.connect(self.set_delta)
