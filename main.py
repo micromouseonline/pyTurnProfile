@@ -326,10 +326,12 @@ class AppWindow(QMainWindow):
         max_alpha = self.path.get_max_alpha()
         wheel_acc = self.robot.radius * math.radians(max_alpha)
         end_x = self.path.trajectory.x_ideal[-1]
-        end_y = self.path.trajectory.x_ideal[-1]
+        end_y = self.path.trajectory.y_ideal[-1]
         end_theta = self.path.trajectory.theta_ideal[-1]
         end_time = self.path.trajectory.time[-1]
         distance = self.path.trajectory.distance[-1]
+        slip_comp_x = self.path.trajectory.x_actual[-1] - self.path.trajectory.x_ideal[-1]
+        slip_comp_y = self.path.trajectory.y_actual[-1] - self.path.trajectory.y_ideal[-1]
         self.ui.textEdit.clear()
         self.ui.textEdit.append(f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
         self.ui.textEdit.append(f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
@@ -339,6 +341,8 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append(f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
         self.ui.textEdit.append(f"        Exit X: {end_x:5.1f} mm")
         self.ui.textEdit.append(f"        Exit Y: {end_y:5.1f} mm")
+        self.ui.textEdit.append(f"   Overshoot X: {slip_comp_x:5.1f} mm")
+        self.ui.textEdit.append(f"  Undershoot Y: {slip_comp_y:5.1f} mm")
         self.ui.textEdit.append(f"    Exit Speed: {self.path.trajectory.speed:5.0f} mm/s")
         self.ui.textEdit.append(f"    Exit Angle: {end_theta:5.1f} deg")
         self.ui.textEdit.append(f"      Distance: {distance:5.0f} mm")
