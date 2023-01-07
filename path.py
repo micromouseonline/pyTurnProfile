@@ -87,20 +87,19 @@ class Path(QGraphicsItem):
         if self.trajectory.n_items == 0:
             return
         colors = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
-        colors_ideal = [QColor('#909'),QColor('#090'),QColor('#900'),QColor('#990'),QColor('#099'),QColor('#909')]
+        colors_ideal = [QColor('#909'),QColor('#909'),QColor('#900'),QColor('#990'),QColor('#099'),QColor('#909')]
         colors_actual= [QColor('#f0f'),QColor('#0f0'),QColor('#f00'),QColor('#ff0'),QColor('#0ff'),QColor('#f0f')]
         pen = QPen(Qt.white)
         pen.setWidthF(2.0)
         painter.setPen(pen)
-        print("paint path")
         for i in range(0, self.trajectory.n_items, 2):
             phase = int(self.trajectory.phase[i])
-            pen.setColor(colors_actual[phase])
-            painter.setPen(pen)
-            rect = QRectF(self.trajectory.x_actual[i], self.trajectory.y_actual[i], 1.0, 1.0)
-            painter.drawEllipse(rect)
             pen.setColor(colors_ideal[phase])
+            painter.setPen(pen)
             rect = QRectF(self.trajectory.x_ideal[i], self.trajectory.y_ideal[i], 1.0, 1.0)
+            painter.drawEllipse(rect)
+            pen.setColor(colors_actual[phase])
+            rect = QRectF(self.trajectory.x_actual[i], self.trajectory.y_actual[i], 2.0, 2.0)
             painter.setPen(pen)
             painter.drawEllipse(rect)
         xi,yi,xa,ya = self.calculate_leadout()
@@ -121,7 +120,6 @@ class Path(QGraphicsItem):
         speed = self.trajectory.speed
         t0 = self.trajectory.time[-1]
         t1 = t0 + distance/speed
-        print(t1-t0)
         time = np.arange(t0,t1,self.trajectory.delta_t)
         x_ideal = np.zeros(len(time))
         y_ideal = np.zeros(len(time))
@@ -171,7 +169,6 @@ class Path(QGraphicsItem):
             profile = Trapezoid()
         self.trajectory.set_profiler(profile)
         params.speed = params.max_speed
-        params.k_grip = 200
         self.trajectory.set_params(params)
         self.trajectory.set_start_xy(startx,starty)
         self.trajectory.calculate()

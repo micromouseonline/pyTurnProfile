@@ -96,7 +96,7 @@ class AppWindow(QMainWindow):
         self.ui.turnSpeedSpinBox.valueChanged.connect(self.set_speed)
         self.ui.radiusSpinBox.valueChanged.connect(self.set_radius)
         self.ui.accelerationSpinBox.valueChanged.connect(self.set_acceleration)
-        self.ui.slipSpinBox.valueChanged.connect(self.set_slip)
+        self.ui.gripSpinBox.valueChanged.connect(self.set_slip)
 
         # self.ui.progressSlider.valueChanged.connect(self.re_calculate)
         # # turn type selectors
@@ -200,7 +200,7 @@ class AppWindow(QMainWindow):
             return
 
         # force recalculation of the spinners
-        self.set_speed(self.current_params.max_speed)
+        self.set_speed(self.current_params.speed)
         self.set_radius(self.current_params.arc_radius)
         self.ui.progressSlider.setValue(0)
         self.re_calculate()
@@ -248,6 +248,7 @@ class AppWindow(QMainWindow):
         self.re_calculate()
 
     def set_slip(self, slip):
+        self.current_params.k_grip = slip
         self.re_calculate()
 
     def set_acceleration(self, acceleration):
@@ -294,6 +295,7 @@ class AppWindow(QMainWindow):
         self.set_safely(self.ui.radiusSpinBox, int(params.arc_radius))
         self.set_safely(self.ui.deltaSpinBox, int(params.delta))
         self.set_safely(self.ui.cubicLengthSpinBox, int(params.cubic_length))
+        self.set_safely(self.ui.gripSpinBox, int(params.k_grip))
 
         self.set_offset(params.offset)
         self.set_speed(speed_now)
@@ -390,7 +392,6 @@ class AppWindow(QMainWindow):
         self.setWindowTitle('%0.2f fps' % fps)
 
     def re_calculate(self):
-
         start_x = self.ui.startXSpinBox.value()
         start_y = self.ui.startYSpinBox.value()
 

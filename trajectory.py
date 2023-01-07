@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 10:32:23 pm
+# Last Modified: Saturday, 7th January 2023 11:05:43 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -125,10 +125,9 @@ class Trajectory:
         if not self.is_configured():
             return
         self.reset_data()        
-        print(f"{self.end_time:.3f} {self.n_items}")
+        # print(f"{self.end_time:.3f} {self.n_items}")
         self.time = np.linspace(0,self.end_time,self.n_items)
         self.theta_ideal[0] = self.start_angle
-        print("calculating...")
         for i,t in enumerate(self.time):
             p = t/self.end_time
             omega,phase = self.profiler.get_omega(p)
@@ -140,7 +139,7 @@ class Trajectory:
 
         
         # now we have the angular velocity as a function of time
-        print(self.delta_t)
+        # print(self.delta_t)
         self.theta_ideal = np.cumsum(self.omega_ideal * self.delta_t) + self.start_angle -90
         # nast hack for rounding errors
         # self.theta_ideal[-1] = self.profiler.params.angle
@@ -162,7 +161,7 @@ class Trajectory:
             return np.degrees(b_dot)
 
         self.theta_actual[0] = self.start_angle
-        print(self.speed, self.k_grip, self.k_grip/self.speed)
+        # print(self.speed, self.k_grip, self.k_grip/self.speed)
         for i in range(len(self.time)):
             if i > 0:
                 omega = self.omega_ideal[i-1]
