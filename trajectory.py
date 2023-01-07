@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 1:30:00 am
+# Last Modified: Saturday, 7th January 2023 12:07:56 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -99,14 +99,9 @@ class Trajectory:
         self.omega_actual = np.zeros(self.n_items)
         self.x_actual = np.zeros(self.n_items)
         self.y_actual = np.zeros(self.n_items)
-        
-    def set_start(self, start_x, start_y):
-        self.start_x = start_x # mm
-        self.start_y = start_y # mm
             
     def set_profiler(self,profiler):
         self.profiler = profiler
-        
 
     def set_params(self, params : TurnParameters ):
         # self.parameters = params
@@ -114,7 +109,6 @@ class Trajectory:
         self.start_angle = params.startAngle
         self.k_grip = params.k_grip
         self.profiler.setup(params)
-        
 
     def set_start_xy(self,x,y):
         self.start_x = x
@@ -199,7 +193,7 @@ if __name__ == "__main__":
     # if so, why?
     trajectory.set_params(parameters)
     
-    trajectory.set_start(0,0)
+    trajectory.set_start_xy(0,0)
     trajectory.calculate()
     
     print(parameters)
