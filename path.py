@@ -7,8 +7,11 @@ from PyQt5.QtGui import QPen, QBrush
 from PyQt5.QtCore import (Qt)
 from PyQt5.QtWidgets import QGraphicsItem
 
-from parameters import TurnParameters
+from parameters import TurnParameters, default_params
 from robot_state import RobotState
+from trajectory import Trajectory
+from profilers import *
+from pose import Pose
 
 
 class ProfileType(Enum):
@@ -36,12 +39,20 @@ class Path(QGraphicsItem):
         self.min_y = 0
         self.max_x = 0
         self.max_y = 0
+        self.trajectory = Trajectory()
+        self.trajectory.set_profiler(Trapezoid())
+        parameters = copy.copy(default_params["SS90F"])
+        parameters.speed = 2000.1
+        parameters.k_grip = 200.0
+        self.trajectory.set_params(parameters)
+        self.trajectory.set_start_xy(0,0)
+
 
     def boundingRect(self):
         return QRectF(-100.0, -100.0, 600.0, 600.0)
 
     def path_count(self):
-        return len(self.path_points)
+        return self.trajectory.n_items
 
     def get_state_at(self, index):
         if index >= self.path_count():
@@ -51,22 +62,18 @@ class Path(QGraphicsItem):
         return self.path_points[index]
 
     def get_pose_at(self, index):
-        state = self.get_state_at(index)
-        return state.get_pose()
+        x = self.trajectory.x_ideal[index]
+        y = self.trajectory.y_ideal[index]
+        theta = self.trajectory.theta_ideal[index]
+        return Pose(x,y,theta)
+
 
     def get_max_acceleration(self):
-        max_acc = 0
-        for state in self.path_points[:self.turn_end]:
-            if state.acceleration > max_acc:
-                max_acc = state.acceleration
-        return max_acc
+        return np.max(np.radians(self.trajectory.omega_ideal) * self.trajectory.speed)
 
     def get_max_alpha(self):
-        max_alpha = 0
-        for state in self.path_points[:self.turn_end]:
-            if state.alpha > max_alpha:
-                max_alpha = state.alpha
-        return max_alpha
+        return np.max(self.trajectory.alpha)
+
 
     def get_max_omega(self):
         max_omega = 0
@@ -79,16 +86,23 @@ class Path(QGraphicsItem):
         if len(self.path_points) == 0:
             return
         colors = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
+        colors_ideal = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
+        colors_actual = [Qt.magenta, Qt.green, Qt.red, Qt.yellow, Qt.cyan, Qt.magenta]
         pen = QPen(Qt.white)
         pen.setWidthF(2.0)
         painter.setPen(pen)
-        for i in range(0, len(self.path_points), 5):
-            state = self.path_points[i]
-            pen.setColor(colors[state.phase])
+        for i in range(0, self.trajectory.n_items, 5):
+            
+            # state = self.path_points[i]
+            phase = int(self.trajectory.phase[i])
+            pen.setColor(colors[phase])
             painter.setPen(pen)
-            rect = QRectF(state.x, state.y, 1.0, 1.0)
+            rect = QRectF(self.trajectory.x_ideal[i], self.trajectory.y_ideal[i], 1.0, 1.0)
             painter.drawEllipse(rect)
-
+            rect = QRectF(self.trajectory.x_actual[i], self.trajectory.y_actual[i], 1.0, 1.0)
+            painter.drawEllipse(rect)
+            # rect = QRectF(state.x, state.y, 1.0, 1.0)
+            # painter.drawEllipse(rect)
     '''
     Tthe profilers get the entire set of omega, theta, phase for the turn
     '''
@@ -271,7 +285,12 @@ class Path(QGraphicsItem):
         elif profile_type == ProfileType.CUBIC:
             self.calculate_cubic(params, startx, starty, loop_interval)
         else:
-            self.calculate_trapezoid(params, startx, starty, loop_interval)            
+            self.calculate_trapezoid(params, startx, starty, loop_interval)   
+        params.speed = params.max_speed
+        params.k_grip = 200
+        self.trajectory.set_params(params)
+        self.trajectory.set_start_xy(startx,starty)
+        self.trajectory.calculate()
         return
 
     def get_turn_acceleration(self, profile_type: ProfileType, params: TurnParameters):

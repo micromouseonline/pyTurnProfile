@@ -87,7 +87,6 @@ class AppWindow(QMainWindow):
         # these get sensible values at the end of the initialisation
         self.current_params = None
         self.current_profile = None
-        
 
         # connect everything up
         self.ui.deltaSpinBox.valueChanged.connect(self.set_delta)
@@ -304,10 +303,11 @@ class AppWindow(QMainWindow):
 
     def set_path_position(self):
         i = self.ui.progressSlider.value()
-        state = self.path.get_state_at(i)
         pose = self.path.get_pose_at(i)
         self.robot.set_pose(pose)
-        str = f"{int(state.distance):4d} [{int(pose.x):4d},{int(pose.y):4d}] @ {pose.theta:4.1f} deg {state.omega:.2f} deg/s"
+        distance = self.path.trajectory.distance[i]
+        omega = self.path.trajectory.omega_ideal[i]
+        str = f"{int(distance):4d} [{int(pose.x):4d},{int(pose.y):4d}] @ θ={int(pose.theta):4d} deg ω={omega:.2f} deg/s"
         self.ui.lblPathView.setText(str)
 
     def set_xy(self):
@@ -325,26 +325,25 @@ class AppWindow(QMainWindow):
     def show_summary(self):
         max_alpha = self.path.get_max_alpha()
         wheel_acc = self.robot.radius * math.radians(max_alpha)
-        exit_state = self.path.get_state_at(self.path.turn_end - 1)
+        end_x = self.path.trajectory.x_ideal[-1]
+        end_y = self.path.trajectory.x_ideal[-1]
+        end_theta = self.path.trajectory.theta_ideal[-1]
+        end_time = self.path.trajectory.time[-1]
+        distance = self.path.trajectory.distance[-1]
         self.ui.textEdit.clear()
         self.ui.textEdit.append(
             f"   Min. Radius: {self.ui.radiusSpinBox.value():5.0f} mm")
-        self.ui.textEdit.append(
-            f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
-        self.ui.textEdit.append(
-            f"Cent'l Accel'n: {self.path.get_max_acceleration():5.0f} mm/s/s")
+        self.ui.textEdit.append(f"    Turn Speed: {self.ui.turnSpeedSpinBox.value():5.0f} mm/s")
+        self.ui.textEdit.append(f"Cent'l Accel'n: {self.path.get_max_acceleration():5.0f} mm/s/s")
         self.ui.textEdit.append(f" Wheel Accel'n: {wheel_acc:5.0f} mm/s/s")
         self.ui.textEdit.append(f"     Max alpha: {max_alpha:5.0f} deg/s/s")
-        self.ui.textEdit.append(
-            f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
-        self.ui.textEdit.append(f"        Exit X: {exit_state.x:5.1f} mm")
-        self.ui.textEdit.append(f"        Exit Y: {exit_state.y:5.1f} mm")
-        self.ui.textEdit.append(
-            f"    Exit Speed: {exit_state.speed:5.0f} mm/s")
-        self.ui.textEdit.append(f"    Exit Angle: {exit_state.theta:5.1f} deg")
-        self.ui.textEdit.append(
-            f"      Distance: {exit_state.distance:5.0f} mm")
-        self.ui.textEdit.append(f"          Time: {exit_state.time:5.3f} sec")
+        self.ui.textEdit.append(f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
+        self.ui.textEdit.append(f"        Exit X: {end_x:5.1f} mm")
+        self.ui.textEdit.append(f"        Exit Y: {end_y:5.1f} mm")
+        self.ui.textEdit.append(f"    Exit Speed: {self.path.trajectory.speed:5.0f} mm/s")
+        self.ui.textEdit.append(f"    Exit Angle: {end_theta:5.1f} deg")
+        self.ui.textEdit.append(f"      Distance: {distance:5.0f} mm")
+        self.ui.textEdit.append(f"          Time: {end_time:5.3f} sec")
         self.ui.textEdit.append("")
 
     def plot(self, x, y, plot_item, plotname, color, line_style=Qt.SolidLine):
@@ -405,12 +404,13 @@ class AppWindow(QMainWindow):
         self.path.calculate(self.current_profile, self.current_params,
                             start_x, start_y, self.loop_interval)
         self.ui.progressSlider.setMinimum(0)
-        self.ui.progressSlider.setMaximum(self.path.turn_end)
-        i = self.ui.progressSlider.value()        
+        self.ui.progressSlider.setMaximum(self.path.trajectory.n_items-1)
+        i = self.ui.progressSlider.value()
         self.robot.set_pose(self.path.get_pose_at(i))
-        state = self.path.get_state_at(i)
         pose = self.path.get_pose_at(i)
-        str = f"{int(state.distance):4d} [{int(pose.x):4d},{int(pose.y):4d}] @ {int(pose.theta):4d} deg {state.omega:.2f} deg/s"
+        distance = self.path.trajectory.distance[i]
+        omega = self.path.trajectory.omega_ideal[i]
+        str = f"{int(distance):4d} [{int(pose.x):4d},{int(pose.y):4d}] @ θ={int(pose.theta):4d} deg ω={omega:.2f} deg/s"
         self.ui.lblPathView.setText(str)
 
         self.plot_data()

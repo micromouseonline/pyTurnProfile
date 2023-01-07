@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 12:07:56 pm
+# Last Modified: Saturday, 7th January 2023 12:56:26 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -56,9 +56,11 @@ class Trajectory:
         self.end_time = 0.0
         self.time = None
         #
+        self.distance = [0]
         self.phase = None
         self.theta_ideal = None
         self.omega_ideal = None
+        self.alpha = None
         self.x_ideal = None
         self.y_ideal = None
         #
@@ -90,8 +92,10 @@ class Trajectory:
         self.end_time = self.profiler.length/self.speed
         self.n_items = 1+int(0.5+self.end_time/self.delta_t)        
         self.phase = np.zeros(self.n_items)
+        self.distance = np.zeros(self.n_items)
         self.theta_ideal = np.zeros(self.n_items)
         self.omega_ideal = np.zeros(self.n_items)
+        self.alpha = np.zeros(self.n_items)
         self.x_ideal = np.zeros(self.n_items)
         self.y_ideal = np.zeros(self.n_items)
         self.beta = np.zeros(self.n_items)
@@ -130,6 +134,14 @@ class Trajectory:
             omega,phase = self.profiler.get_omega(p)
             self.omega_ideal[i] = omega
             self.phase[i] = phase
+            self.distance[i] = t * self.speed
+            if i > 0:
+                self.alpha = (self.omega_ideal[i] - self.omega_ideal[i-1])/self.delta_t
+
+        
+        
+
+            
 
 
         # now we have the angular velocity as a function of time
@@ -187,7 +199,7 @@ if __name__ == "__main__":
     trajectory.set_profiler(profile)
     
     parameters = copy.copy(default_params["SS90F"])
-    parameters.speed = 2400.1
+    parameters.speed = 1400.1
     parameters.k_grip = 200.0
     # must we have k_grip < 2 * speed?
     # if so, why?
@@ -232,7 +244,7 @@ if __name__ == "__main__":
         # ax.yaxis.set_minor_locator(tick.MultipleLocator(10))
         # ax.set_aspect('equal', adjustable='box')
 
-        plt.plot(trajectory.time,trajectory.beta)
+        plt.plot(trajectory.time,trajectory.beta, label = 'beta')
         # plt.plot(trajectory.time,trajectory.theta_ideal)
         # plt.plot(trajectory.time,trajectory.theta_actual)
         # plt.plot(trajectory.time,trajectory.omega_ideal, label = 'omega_ideal')
