@@ -164,7 +164,7 @@ class Path(QGraphicsItem):
         else:
             profile = Trapezoid()
         self.trajectory.set_profiler(profile)
-        params.speed = params.max_speed
+        # params.speed = params.max_speed
         self.trajectory.set_params(params)
         self.trajectory.set_start_xy(startx,starty)
         self.trajectory.calculate()
@@ -176,12 +176,12 @@ class Path(QGraphicsItem):
     def get_turn_acceleration(self, profile_type: ProfileType, params: TurnParameters):
         acc = 0
         if profile_type == ProfileType.TRAPEZOID:
-            acc = params.max_speed * params.max_speed / params.arc_radius
+            acc = params.speed * params.speed / params.arc_radius
         elif profile_type == ProfileType.QUADRATIC:
-            acc = params.max_speed * params.max_speed / params.arc_radius
+            acc = params.speed * params.speed / params.arc_radius
         elif profile_type == ProfileType.SINUSOID:
-            acc = params.max_speed * params.max_speed / params.arc_radius
+            acc = params.speed * params.speed / params.arc_radius
         elif profile_type == ProfileType.CUBIC:
-            acc = 6 * params.max_speed * params.max_speed * math.radians(params.angle) / 4 / params.cubic_length
+            acc = 6 * params.speed * params.speed * math.radians(params.angle) / 4 / params.cubic_length
 
         return acc

@@ -213,7 +213,7 @@ class AppWindow(QMainWindow):
         :param speed: The speed throughout the turn
         :return: modifies acceleration
         '''
-        self.current_params.max_speed = speed
+        self.current_params.speed = speed
         acceleration = self.path.get_turn_acceleration(self.current_profile, self.current_params)
         self.set_safely(self.ui.accelerationSpinBox, int(acceleration))
         self.re_calculate()
@@ -255,7 +255,7 @@ class AppWindow(QMainWindow):
         self.current_params.acceleration = acceleration
         radius = self.ui.radiusSpinBox.value()
         speed = math.sqrt(acceleration * radius)
-        self.current_params.max_speed = speed
+        self.current_params.speed = speed
         self.set_safely(self.ui.turnSpeedSpinBox, int(speed))
         self.re_calculate()
 
@@ -339,8 +339,8 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append(f" Wheel Accel'n: {wheel_acc:5.0f} mm/s/s")
         self.ui.textEdit.append(f"     Max alpha: {max_alpha:5.0f} deg/s/s")
         self.ui.textEdit.append(f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
-        self.ui.textEdit.append(f"        Exit X: {end_x:5.1f} mm")
-        self.ui.textEdit.append(f"        Exit Y: {end_y:5.1f} mm")
+        self.ui.textEdit.append(f"Profile Exit X: {end_x:5.1f} mm")
+        self.ui.textEdit.append(f"Profile Exit Y: {end_y:5.1f} mm")
         self.ui.textEdit.append(f"   Overshoot X: {slip_comp_x:5.1f} mm")
         self.ui.textEdit.append(f"  Undershoot Y: {slip_comp_y:5.1f} mm")
         self.ui.textEdit.append(f"    Exit Speed: {self.path.trajectory.speed:5.0f} mm/s")
@@ -365,7 +365,7 @@ class AppWindow(QMainWindow):
         lot of that is just clearing the axes
         '''
         now = perf_counter()
-        axes = self.ui.mpl_widget.axes
+        axes = self.ui.pg_widget.axes
         title_style = {'color': 'cyan', 'size': '12px'}
         interval = self.path.trajectory.delta_t
         path_time = self.path.trajectory.time

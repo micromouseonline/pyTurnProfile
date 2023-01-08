@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Saturday, 7th January 2023 11:05:43 pm
+# Last Modified: Sunday, 8th January 2023 3:24:48 pm
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -160,8 +160,6 @@ class Trajectory:
             b_dot = -(np.radians(omega) + self.k_grip * np.radians(beta) / speed)
             return np.degrees(b_dot)
 
-        self.theta_actual[0] = self.start_angle
-        # print(self.speed, self.k_grip, self.k_grip/self.speed)
         for i in range(len(self.time)):
             if i > 0:
                 omega = self.omega_ideal[i-1]
@@ -173,6 +171,7 @@ class Trajectory:
 
         x = self.start_x
         y = self.start_y
+        self.theta_actual[0] = self.theta_ideal[0]
         for i,angle in enumerate(self.theta_actual):
             self.x_actual[i] = x
             self.y_actual[i] = y

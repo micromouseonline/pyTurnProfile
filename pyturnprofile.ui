@@ -284,7 +284,7 @@ p, li { white-space: pre-wrap; }
       </widget>
      </item>
      <item row="7" column="1">
-      <widget class="QSpinBox" name="slipSpinBox">
+      <widget class="QSpinBox" name="gripSpinBox">
        <property name="toolTip">
         <string extracomment="Slip angle constant (deg/g)"/>
        </property>
@@ -472,9 +472,9 @@ p, li { white-space: pre-wrap; }
       </spacer>
      </item>
      <item row="7" column="0">
-      <widget class="QLabel" name="lblSlip">
+      <widget class="QLabel" name="lblGrip">
        <property name="text">
-        <string>Slip</string>
+        <string>Grip</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -653,7 +653,7 @@ p, li { white-space: pre-wrap; }
      <string>Turn Summary</string>
     </property>
    </widget>
-   <widget class="PGWidget" name="mpl_widget" native="true">
+   <widget class="PGWidget" name="pg_widget" native="true">
     <property name="geometry">
      <rect>
       <x>10</x>

@@ -244,9 +244,9 @@ class Ui_MainWindow(object):
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(10, 460, 131, 16))
         self.label.setObjectName("label")
-        self.mpl_widget = PGWidget(self.centralwidget)
-        self.mpl_widget.setGeometry(QtCore.QRect(10, 30, 401, 401))
-        self.mpl_widget.setObjectName("mpl_widget")
+        self.pg_widget = PGWidget(self.centralwidget)
+        self.pg_widget.setGeometry(QtCore.QRect(10, 30, 401, 401))
+        self.pg_widget.setObjectName("pg_widget")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)

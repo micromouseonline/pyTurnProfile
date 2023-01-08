@@ -105,7 +105,6 @@ class Sinusoid(TurnProfile):
         self.arc_angle = params.angle - 2 * self.transition_angle
         self.arc_length = self.params.speed * self.arc_angle / self.arc_omega
         self.length = 2 * params.delta + self.arc_length
-        print(self.arc_length)
 
     def get_omega(self,p):
         phase = 1
