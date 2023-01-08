@@ -370,6 +370,7 @@ class AppWindow(QMainWindow):
         interval = self.path.trajectory.delta_t
         path_time = self.path.trajectory.time
         omega = self.path.trajectory.omega_ideal
+        beta = self.path.trajectory.beta
         speed = self.path.trajectory.speed
         alpha = self.path.trajectory.alpha
         left_speed = speed + self.robot.radius * np.radians(omega)
@@ -381,7 +382,8 @@ class AppWindow(QMainWindow):
 
         self.plot(path_time, interval * left_speed, axes[0], "L", palette[3])
         self.plot(path_time, interval * right_speed, axes[0], "R", palette[4])
-        self.plot(path_time, interval * speed * np.radians(omega), axes[1], "R", palette[2])
+        # self.plot(path_time, interval * speed * np.radians(omega), axes[1], "R", palette[2])
+        self.plot(path_time, beta, axes[1], "R", palette[2])
         self.plot(path_time, interval * alpha, axes[3], 'q', palette[6])
         self.plot(path_time, omega, axes[2], '', palette[5])
 

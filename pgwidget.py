@@ -18,8 +18,8 @@ class PGWidget(QWidget):
         p00.setYRange(0, 3.5)
         
         p01 = w.addPlot(row=0, col=1)     
-        p01.setTitle("centr'l acc (m/s/s)",**title_style)
-        p01.setYRange(0, 70)
+        p01.setTitle("beta (deg)",**title_style)
+        p01.setYRange(-20, 0)
         
         p10 = w.addPlot(row=1, col=0)     
         p10.setTitle("omega (deg/s)",**title_style)
