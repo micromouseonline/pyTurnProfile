@@ -327,6 +327,9 @@ class AppWindow(QMainWindow):
         wheel_acc = self.robot.radius * math.radians(max_alpha)
         end_x = self.path.trajectory.x_ideal[-1]
         end_y = self.path.trajectory.y_ideal[-1]
+        end_x_act = self.path.trajectory.x_actual[-1]
+        end_y_act = self.path.trajectory.y_actual[-1]
+        
         end_theta = self.path.trajectory.theta_ideal[-1]
         end_time = self.path.trajectory.time[-1]
         distance = self.path.trajectory.distance[-1]
@@ -341,6 +344,8 @@ class AppWindow(QMainWindow):
         self.ui.textEdit.append(f"     Max omega: {self.path.get_max_omega():5.0f} deg/s")
         self.ui.textEdit.append(f"Profile Exit X: {end_x:5.1f} mm")
         self.ui.textEdit.append(f"Profile Exit Y: {end_y:5.1f} mm")
+        self.ui.textEdit.append(f" Actual Exit X: {end_x_act:5.1f} mm")
+        self.ui.textEdit.append(f" Actual Exit Y: {end_y_act:5.1f} mm")
         self.ui.textEdit.append(f"   Overshoot X: {slip_comp_x:5.1f} mm")
         self.ui.textEdit.append(f"  Undershoot Y: {slip_comp_y:5.1f} mm")
         self.ui.textEdit.append(f"    Exit Speed: {self.path.trajectory.speed:5.0f} mm/s")
