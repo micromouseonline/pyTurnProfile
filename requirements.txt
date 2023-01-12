@@ -1,2 +1,4 @@
-PyQt5>=5.15
-matplotlib>=3.5
+matplotlib==3.1.2
+numpy==1.17.4
+PyQt5==5.15.7
+pyqtgraph==0.13.1
