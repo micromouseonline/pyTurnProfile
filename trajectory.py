@@ -6,7 +6,7 @@
 # File Created: Thursday, 5th January 2023 2:10:17 pm
 # Author: Peter Harrison 
 # -----
-# Last Modified: Sunday, 8th January 2023 3:24:48 pm
+# Last Modified: Tuesday, 10th January 2023 9:30:47 am
 # -----
 # Copyright 2022 - 2023 Peter Harrison, Micromouseonline
 # -----
@@ -71,7 +71,7 @@ class Trajectory:
         self.y_actual = None
         #
         self.profiler : TurnProfile = None
-        # self.parameters : TurnParameters = None
+        self.parameters : TurnParameters = None
         
 
     def is_configured(self):
@@ -108,11 +108,18 @@ class Trajectory:
         self.profiler = profiler
 
     def set_params(self, params : TurnParameters ):
-        # self.parameters = params
+        self.parameters = params
         self.speed = params.speed
         self.start_angle = params.startAngle
         self.k_grip = params.k_grip
         self.profiler.setup(params)
+
+    def set_speed(self, speed):
+        if self.parameters is None:
+            return
+        self.parameters.speed = speed
+        self.speed = speed
+        self.profiler.setup(parameters)
 
     def set_start_xy(self,x,y):
         self.start_x = x
@@ -179,6 +186,9 @@ class Trajectory:
             y += self.speed * np.sin(np.radians(angle)) * self.delta_t
         self.x_actual[-1] = x
         self.y_actual[-1] = y
+        dx = self.x_actual[-1] - self.x_ideal[-1]
+        dy = self.y_actual[-1] - self.y_ideal[-1]
+        return (dx,dy)
 
 
 
@@ -191,8 +201,8 @@ if __name__ == "__main__":
     profile = Cubic()
     trajectory.set_profiler(profile)
     
-    parameters = copy.copy(default_params["SS90F"])
-    parameters.speed = 1400.1
+    parameters = copy.copy(default_params["SD45"])
+    parameters.speed = 1400.0
     parameters.k_grip = 200.0
     # must we have k_grip < 2 * speed?
     # if so, why?
@@ -203,13 +213,17 @@ if __name__ == "__main__":
     trajectory.set_start_xy(0,0)
     trajectory.calculate()
     
+    print(f"SPEED  DX  DY")
+    for speed in np.arange(500,2500,250):
+        trajectory.set_speed(speed)
+        (dx,dy) = trajectory.calculate()
+        print(f"{speed:.0f}  {dx:.1f}  {dy:.1f}")
+
     print(parameters)
     end_x_ideal = trajectory.x_ideal[-1]
     end_y_ideal = trajectory.y_ideal[-1]
     end_x_actual = trajectory.x_actual[-1]
     end_y_actual = trajectory.y_actual[-1]
-    dx = abs(end_x_ideal-end_x_actual)
-    dy = abs(end_y_ideal - end_y_actual)
 
     print(f"{trajectory.x_ideal[-1]:.0f},{trajectory.y_ideal[-1]:.0f}")
     print(f"{trajectory.x_actual[-1]:.0f},{trajectory.y_actual[-1]:.0f}")
@@ -244,7 +258,7 @@ if __name__ == "__main__":
         # plt.plot(trajectory.time,trajectory.theta_actual)
         # plt.plot(trajectory.time,trajectory.omega_ideal, label = 'omega_ideal')
         # plt.plot(trajectory.time,trajectory.omega_actual, label = 'omega actual')
-        plt.title(f"Angular Velocity\nspeed = {trajectory.speed:.0f} mm/s")
+        plt.title(f"Beta (deg)\nspeed = {trajectory.speed:.0f} mm/s")
         plt.legend(loc = 'upper right')
         plt.grid()
         plt.show()
